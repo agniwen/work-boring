@@ -12,6 +12,8 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    titleBarStyle: 'hiddenInset', // 隐藏标题栏但保留 macOS 红绿灯按钮
+    trafficLightPosition: { x: 16, y: 16 }, // 调整红绿灯位置
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

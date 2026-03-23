@@ -55,6 +55,13 @@ Electron apps run in three separate processes:
 - **Import Alias**: Use `@renderer` alias for imports within renderer code (configured in `electron.vite.config.ts`)
 - **Type Safety**: Full TypeScript coverage with type-aware linting via oxlint
 
+### Naming Conventions
+
+- **Files and Folders**: Use kebab-case for all file and folder names
+  - Components: `sidebar.tsx`, `chat-input.tsx`
+  - Folders: `-components`, `ai-elements`, `query-client.ts`
+  - Route-specific component folders use `-components` prefix (e.g., `routes/_dashboard/-components/`)
+
 ## Project Structure
 
 ```
