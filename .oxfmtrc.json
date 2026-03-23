@@ -7,12 +7,12 @@
   "trailingComma": "all",
   "quoteProps": "as-needed",
   "sortImports": {
-    "internalPattern": ["~/"],
+    "internalPattern": ["@renderer/**", "~/"],
     "sortSideEffects": false
   },
   "sortTailwindcss": {
     "functions": ["cn", "cva", "clsx"],
-    "stylesheet": "./src/renderer/src/assets/main.css"
+    "stylesheet": "./src/renderer/src/global.css"
   },
   "ignorePatterns": [
     "dist/**",
