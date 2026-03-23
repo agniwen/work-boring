@@ -1,0 +1,54 @@
+{
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "plugins": ["typescript", "react", "import", "jsx-a11y", "unicorn", "promise", "node", "oxc"],
+  "categories": {
+    "correctness": "warn",
+    "suspicious": "warn"
+  },
+  "env": {
+    "browser": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "dist/**",
+    ".output/**",
+    "src/generated/**",
+    "src/renderer/src/routeTree.gen.ts"
+  ],
+  "settings": {
+    "react": {
+      "version": "19.2.4",
+      "linkComponents": [
+        {
+          "attribute": "to",
+          "name": "Link"
+        }
+      ]
+    },
+    "jsx-a11y": {
+      "components": {
+        "Link": "a"
+      }
+    }
+  },
+  "rules": {
+    "eqeqeq": "warn",
+    "no-empty": "off",
+    "array-callback-return": "off",
+    "arrow-body-style": "off",
+    "prefer-regex-literals": "off",
+    "import/no-anonymous-default-export": "off",
+    "import/no-unassigned-import": "off",
+    "jsx-a11y/anchor-is-valid": "off",
+    "react/no-array-index-key": "off",
+    "react/no-children-prop": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "react/react-in-jsx-scope": "off",
+    "typescript/no-empty-object-type": "warn",
+    "typescript/no-use-before-define": "off",
+    "typescript/no-floating-promises": "off"
+  },
+}

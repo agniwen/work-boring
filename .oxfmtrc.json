@@ -1,0 +1,23 @@
+{
+  "printWidth": 100,
+  "tabWidth": 2,
+  "singleQuote": true,
+  "jsxSingleQuote": true,
+  "semi": true,
+  "trailingComma": "all",
+  "quoteProps": "as-needed",
+  "sortImports": {
+    "internalPattern": ["~/"],
+    "sortSideEffects": false
+  },
+  "sortTailwindcss": {
+    "functions": ["cn", "cva", "clsx"],
+    "stylesheet": "./src/renderer/src/assets/main.css"
+  },
+  "ignorePatterns": [
+    "dist/**",
+    ".output/**",
+    "src/generated/**",
+    "src/renderer/src/routeTree.gen.ts"
+  ]
+}
