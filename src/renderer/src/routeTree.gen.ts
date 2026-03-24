@@ -13,6 +13,7 @@ import { Route as DashboardRouteRouteImport } from './routes/_dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardSkillsRouteRouteImport } from './routes/_dashboard/skills/route'
 import { Route as DashboardDashboardRouteRouteImport } from './routes/_dashboard/dashboard/route'
+import { Route as DashboardChatRouteRouteImport } from './routes/_dashboard/chat/route'
 
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/_dashboard',
@@ -33,14 +34,21 @@ const DashboardDashboardRouteRoute = DashboardDashboardRouteRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
+const DashboardChatRouteRoute = DashboardChatRouteRouteImport.update({
+  id: '/chat',
+  path: '/chat',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chat': typeof DashboardChatRouteRoute
   '/dashboard': typeof DashboardDashboardRouteRoute
   '/skills': typeof DashboardSkillsRouteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chat': typeof DashboardChatRouteRoute
   '/dashboard': typeof DashboardDashboardRouteRoute
   '/skills': typeof DashboardSkillsRouteRoute
 }
@@ -48,18 +56,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteRouteWithChildren
+  '/_dashboard/chat': typeof DashboardChatRouteRoute
   '/_dashboard/dashboard': typeof DashboardDashboardRouteRoute
   '/_dashboard/skills': typeof DashboardSkillsRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/skills'
+  fullPaths: '/' | '/chat' | '/dashboard' | '/skills'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/skills'
+  to: '/' | '/chat' | '/dashboard' | '/skills'
   id:
     | '__root__'
     | '/'
     | '/_dashboard'
+    | '/_dashboard/chat'
     | '/_dashboard/dashboard'
     | '/_dashboard/skills'
   fileRoutesById: FileRoutesById
@@ -99,15 +109,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardRouteRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
+    '/_dashboard/chat': {
+      id: '/_dashboard/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof DashboardChatRouteRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
   }
 }
 
 interface DashboardRouteRouteChildren {
+  DashboardChatRouteRoute: typeof DashboardChatRouteRoute
   DashboardDashboardRouteRoute: typeof DashboardDashboardRouteRoute
   DashboardSkillsRouteRoute: typeof DashboardSkillsRouteRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardChatRouteRoute: DashboardChatRouteRoute,
   DashboardDashboardRouteRoute: DashboardDashboardRouteRoute,
   DashboardSkillsRouteRoute: DashboardSkillsRouteRoute,
 }

@@ -1,37 +1,60 @@
+import { Label, ListBox } from '@heroui/react';
 import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_WIDTH,
   sidebarOpenAtom,
   sidebarWidthAtom,
 } from '@renderer/atom/app';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
+import { LayoutDashboard, MessageSquare, Layers } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
-// 侧边栏宽度配置常量
+const RESIZE_HANDLE_WIDTH = 4;
 
-const RESIZE_HANDLE_WIDTH = 4; // 可拖拽区域宽度（像素）
+const NAV_ITEMS = [
+  {
+    id: '/dashboard',
+    label: 'Dashboard',
+    icon: <LayoutDashboard size={16} />,
+  },
+  {
+    id: '/chat',
+    label: 'Chat',
+    icon: <MessageSquare size={16} />,
+  },
+  {
+    id: '/skills',
+    label: 'Skills',
+    icon: <Layers size={16} />,
+  },
+];
 
 export function Sidebar() {
   const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
   const [isResizing, setIsResizing] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const routerState = useRouterState();
+  const navigate = useNavigate();
+  const currentPath = routerState.location.pathname;
 
-  // 处理鼠标按下开始拖拽
+  // 找到当前匹配的 nav item key
+  const selectedKey = NAV_ITEMS.find(
+    (item) => currentPath === item.id || currentPath.startsWith(item.id + '/'),
+  )?.id;
+
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
-    // 添加全局样式防止文本选中
     document.body.style.userSelect = 'none';
     document.body.style.cursor = 'col-resize';
   };
 
-  // 处理拖拽过程中的鼠标移动
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-
       const newWidth = e.clientX;
       if (newWidth >= SIDEBAR_MIN_WIDTH && newWidth <= SIDEBAR_MAX_WIDTH) {
         setSidebarWidth(newWidth);
@@ -40,7 +63,6 @@ export function Sidebar() {
 
     const handleMouseUp = () => {
       setIsResizing(false);
-      // 恢复默认样式
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
     };
@@ -56,20 +78,13 @@ export function Sidebar() {
     };
   }, [isResizing, setSidebarWidth]);
 
-  function handleToggleSidebar() {
-    setSidebarOpen(!sidebarOpen);
-  }
-
-  // 添加 Meta+B 快捷键来切换 sidebar
   useHotkeys(
     'meta+b',
     (e) => {
       e.preventDefault();
-      handleToggleSidebar();
+      setSidebarOpen(!sidebarOpen);
     },
-    {
-      enableOnFormTags: true, // 在表单元素中也启用
-    },
+    { enableOnFormTags: true },
   );
 
   return (
@@ -82,10 +97,28 @@ export function Sidebar() {
           willChange: 'transform',
         }}
       >
-        {/* 侧边栏内容 */}
-        <div className='h-full overflow-y-auto p-4'></div>
+        <div className='flex h-full flex-col overflow-y-auto px-2 py-3'>
+          <ListBox
+            aria-label='Navigation'
+            selectionMode='single'
+            selectedKeys={selectedKey ? [selectedKey] : []}
+            className='w-full gap-0.5'
+          >
+            {NAV_ITEMS.map((item) => (
+              <ListBox.Item
+                key={item.id}
+                id={item.id}
+                textValue={item.label}
+                className='text-olive-500 data-[selected=true]:bg-olive-200/80 data-[selected=true]:font-medium data-[selected=true]:text-olive-900'
+                onPress={() => navigate({ to: item.id })}
+              >
+                <span>{item.icon}</span>
+                <Label>{item.label}</Label>
+              </ListBox.Item>
+            ))}
+          </ListBox>
+        </div>
 
-        {/* 可拖拽的调整手柄 - 更宽的区域 */}
         <button
           className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors ${
             isHovering || isResizing ? 'bg-olive-500' : 'bg-transparent hover:bg-olive-300'

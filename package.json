@@ -23,6 +23,7 @@
     "electron-updater": "^6.3.9"
   },
   "devDependencies": {
+    "@ai-sdk/react": "^3.0.139",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@heroui/react": "^3.0.1",
     "@heroui/styles": "^3.0.1",

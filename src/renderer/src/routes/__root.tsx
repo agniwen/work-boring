@@ -1,3 +1,4 @@
+import { TooltipProvider } from '@renderer/components/ui/tooltip';
 import type { QueryClient } from '@tanstack/react-query';
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
 
@@ -11,8 +12,8 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent(): React.JSX.Element {
   return (
-    <>
+    <TooltipProvider>
       <Outlet />
-    </>
+    </TooltipProvider>
   );
 }
