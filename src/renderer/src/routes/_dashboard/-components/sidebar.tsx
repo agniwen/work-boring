@@ -3,12 +3,13 @@ import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_WIDTH,
   sidebarOpenAtom,
+  sidebarResizingAtom,
   sidebarWidthAtom,
 } from '@renderer/atom/app';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
-import { LayoutDashboard, MessageSquare, Layers } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Projector, Layers, MessagesSquare } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 const RESIZE_HANDLE_WIDTH = 4;
@@ -17,12 +18,12 @@ const NAV_ITEMS = [
   {
     id: '/dashboard',
     label: 'Dashboard',
-    icon: <LayoutDashboard size={16} />,
+    icon: <Projector size={16} />,
   },
   {
     id: '/chat',
     label: 'Chat',
-    icon: <MessageSquare size={16} />,
+    icon: <MessagesSquare size={16} />,
   },
   {
     id: '/skills',
@@ -34,18 +35,23 @@ const NAV_ITEMS = [
 export function Sidebar() {
   const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
-  const [isResizing, setIsResizing] = useState(false);
+  const [isResizing, setIsResizing] = useAtom(sidebarResizingAtom);
   const [isHovering, setIsHovering] = useState(false);
+  const sidebarWidthRef = useRef(sidebarWidth);
   const routerState = useRouterState();
   const navigate = useNavigate();
   const currentPath = routerState.location.pathname;
+
+  useEffect(() => {
+    sidebarWidthRef.current = sidebarWidth;
+  }, [sidebarWidth]);
 
   // 找到当前匹配的 nav item key
   const selectedKey = NAV_ITEMS.find(
     (item) => currentPath === item.id || currentPath.startsWith(item.id + '/'),
   )?.id;
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     setIsResizing(true);
     document.body.style.userSelect = 'none';
@@ -53,10 +59,18 @@ export function Sidebar() {
   };
 
   useEffect(() => {
+    if (!isResizing) {
+      return;
+    }
+
+    const clampWidth = (width: number) =>
+      Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width));
+
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      const newWidth = e.clientX;
-      if (newWidth >= SIDEBAR_MIN_WIDTH && newWidth <= SIDEBAR_MAX_WIDTH) {
+      const newWidth = clampWidth(e.clientX);
+
+      if (newWidth !== sidebarWidthRef.current) {
+        sidebarWidthRef.current = newWidth;
         setSidebarWidth(newWidth);
       }
     };
@@ -67,16 +81,16 @@ export function Sidebar() {
       document.body.style.cursor = '';
     };
 
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
     };
-  }, [isResizing, setSidebarWidth]);
+  }, [isResizing, setSidebarWidth, setIsResizing]);
 
   useHotkeys(
     'meta+b',
@@ -90,11 +104,13 @@ export function Sidebar() {
   return (
     <>
       <div
-        className='absolute top-0 left-0 z-10 h-full shrink-0 border-r border-olive-200 pt-12 transition-transform duration-300 ease-out'
+        className={`absolute top-0 left-0 z-10 h-full shrink-0 border-r border-olive-200 pt-12 ${
+          isResizing ? '' : 'transition-transform duration-300 ease-out'
+        }`}
         style={{
           width: `${sidebarWidth}px`,
           transform: sidebarOpen ? 'translateX(0)' : `translateX(-${sidebarWidth}px)`,
-          willChange: 'transform',
+          willChange: isResizing ? 'width' : 'transform',
         }}
       >
         <div className='flex h-full flex-col overflow-y-auto px-2 py-3'>
@@ -109,7 +125,7 @@ export function Sidebar() {
                 key={item.id}
                 id={item.id}
                 textValue={item.label}
-                className='text-olive-500 data-[selected=true]:bg-olive-200/80 data-[selected=true]:font-medium data-[selected=true]:text-olive-900'
+                className='text-olive-500 data-[selected=true]:bg-olive-300/80 data-[selected=true]:font-medium data-[selected=true]:text-olive-800'
                 onPress={() => navigate({ to: item.id })}
               >
                 <span>{item.icon}</span>
@@ -121,7 +137,7 @@ export function Sidebar() {
 
         <button
           className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors ${
-            isHovering || isResizing ? 'bg-olive-500' : 'bg-transparent hover:bg-olive-300'
+            isHovering || isResizing ? 'bg-olive-400' : 'bg-transparent hover:bg-olive-300'
           }`}
           style={{ width: `${RESIZE_HANDLE_WIDTH}px` }}
           onMouseDown={handleMouseDown}

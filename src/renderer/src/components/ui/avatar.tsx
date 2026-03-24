@@ -1,3 +1,5 @@
+'use client';
+
 import { cn } from '@renderer/lib/utils';
 import { Avatar as AvatarPrimitive } from 'radix-ui';
 import * as React from 'react';

@@ -1,4 +1,4 @@
-import { sidebarOpenAtom, sidebarWidthAtom } from '@renderer/atom/app';
+import { sidebarOpenAtom, sidebarResizingAtom, sidebarWidthAtom } from '@renderer/atom/app';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
 
@@ -16,6 +16,7 @@ export const Route = createFileRoute('/_dashboard')({
 function DashboardLayout() {
   const [sidebarOpen] = useAtom(sidebarOpenAtom);
   const [sidebarWidth] = useAtom(sidebarWidthAtom);
+  const [sidebarResizing] = useAtom(sidebarResizingAtom);
 
   return (
     <DashboardHeaderStartProvider>
@@ -24,13 +25,13 @@ function DashboardLayout() {
         <div className='relative flex h-screen w-full flex-col overflow-hidden'>
           <Sidebar />
           <div
-            className='flex h-full flex-col transition-[margin] duration-300 ease-out'
+            className={`flex h-full flex-col ${sidebarResizing ? '' : 'transition-[margin] duration-300 ease-out'}`}
             style={{
               marginLeft: sidebarOpen ? `${sidebarWidth}px` : '0px',
             }}
           >
             {/* 主内容 */}
-            <div className='flex-1 overflow-y-auto bg-white'>
+            <div className='flex-1 overflow-y-auto bg-background'>
               <div className='px-2.5 pt-11.5 pb-2.5'>
                 <Outlet />
               </div>

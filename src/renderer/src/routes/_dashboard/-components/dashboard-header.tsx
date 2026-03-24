@@ -1,4 +1,4 @@
-import { sidebarOpenAtom, sidebarWidthAtom } from '@renderer/atom/app';
+import { sidebarOpenAtom, sidebarResizingAtom, sidebarWidthAtom } from '@renderer/atom/app';
 import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useAtom, useAtomValue } from 'jotai';
@@ -8,6 +8,7 @@ import { DashboardHeaderStartTarget, DashboardHeaderEndTarget } from './dashboar
 
 export function DashboardHeader() {
   const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
+  const [sidebarResizing] = useAtom(sidebarResizingAtom);
   const sidebarWidth = useAtomValue(sidebarWidthAtom);
   function handleToggleSidebar() {
     setSidebarOpen(!sidebarOpen);
@@ -27,7 +28,8 @@ export function DashboardHeader() {
         </div>
         <div
           className={cn(
-            'dashboard-layout-header flex h-11.5 w-full flex-1 items-center px-4 transition-[padding]',
+            'dashboard-layout-header flex h-11.5 w-full flex-1 items-center px-4',
+            !sidebarResizing && 'transition-[padding]',
           )}
           style={{
             paddingLeft: sidebarOpen ? `${sidebarWidth - 120}px` : '32px',
