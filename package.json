@@ -24,6 +24,8 @@
   },
   "devDependencies": {
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@heroui/react": "^3.0.1",
+    "@heroui/styles": "^3.0.1",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@rive-app/react-webgl2": "^4.27.2",
     "@streamdown/cjk": "^1.0.3",
