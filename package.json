@@ -20,9 +20,12 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@orpc/server": "^1.13.10",
     "electron-updater": "^6.3.9"
   },
   "devDependencies": {
+    "@orpc/client": "^1.13.10",
+    "@orpc/tanstack-query": "^1.13.10",
     "@ai-sdk/react": "^3.0.139",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@heroui/react": "^3.0.1",

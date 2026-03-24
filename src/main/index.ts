@@ -1,9 +1,35 @@
 import { join } from 'path';
 
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { onError } from '@orpc/server';
+import { RPCHandler } from '@orpc/server/message-port';
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 
 import icon from '../../resources/icon.png?asset';
+import { ORPC_SERVER_CHANNEL } from '../orpc/channel';
+import { createAppRouter } from './orpc/router';
+
+const appRouter = createAppRouter({
+  getSystemInfo: () => ({
+    appName: app.getName(),
+    appVersion: app.getVersion(),
+    platform: process.platform,
+    arch: process.arch,
+    versions: {
+      chrome: process.versions.chrome,
+      electron: process.versions.electron,
+      node: process.versions.node,
+    },
+  }),
+});
+
+const orpcHandler = new RPCHandler(appRouter, {
+  interceptors: [
+    onError((error) => {
+      console.error('oRPC main process error', error);
+    }),
+  ],
+});
 
 function createWindow(): void {
   // Create the browser window.
@@ -63,6 +89,16 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'));
+  ipcMain.on(ORPC_SERVER_CHANNEL, (event) => {
+    const [serverPort] = event.ports;
+
+    if (!serverPort) {
+      return;
+    }
+
+    orpcHandler.upgrade(serverPort);
+    serverPort.start();
+  });
 
   createWindow();
 

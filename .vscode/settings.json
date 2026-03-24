@@ -15,5 +15,8 @@
     "editor.codeActionsOnSave": {
       "source.fixAll.oxc": "explicit"
     }
-  }
+  },
+  "cSpell.words": [
+    "orpc"
+  ]
 }
