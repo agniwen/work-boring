@@ -140,3 +140,10 @@
     app-region: no-drag;
   }
 }
+
+@layer base {
+  html,
+  body {
+    @apply bg-olive-50/40;
+  }
+}

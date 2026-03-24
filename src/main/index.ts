@@ -12,8 +12,11 @@ function createWindow(): void {
     height: 670,
     show: false,
     autoHideMenuBar: true,
+    transparent: true, // 启用窗口透明
+    backgroundColor: '#00000000', // 设置完全透明背景
     titleBarStyle: 'hiddenInset', // 隐藏标题栏但保留 macOS 红绿灯按钮
     trafficLightPosition: { x: 16, y: 16 }, // 调整红绿灯位置
+    vibrancy: 'under-window', // macOS 毛玻璃效果
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -38,6 +41,10 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
   }
 }
+
+// Enable transparent visuals for the app
+app.commandLine.appendSwitch('enable-transparent-visuals');
+app.commandLine.appendSwitch('disable-gpu-vsync');
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

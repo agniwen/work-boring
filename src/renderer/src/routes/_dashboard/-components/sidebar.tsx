@@ -54,7 +54,7 @@ export function Sidebar() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing]);
+  }, [isResizing, setSidebarWidth]);
 
   function handleToggleSidebar() {
     setSidebarOpen(!sidebarOpen);
@@ -75,7 +75,7 @@ export function Sidebar() {
   return (
     <>
       <div
-        className='absolute top-0 left-0 z-10 h-full shrink-0 border-r border-olive-200 bg-olive-50 pt-12 transition-transform duration-300 ease-out'
+        className='absolute top-0 left-0 z-10 h-full shrink-0 border-r border-olive-200 pt-12 transition-transform duration-300 ease-out'
         style={{
           width: `${sidebarWidth}px`,
           transform: sidebarOpen ? 'translateX(0)' : `translateX(-${sidebarWidth}px)`,

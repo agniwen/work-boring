@@ -8,4 +8,4 @@ export const SIDEBAR_DEFAULT_WIDTH = 280; // 默认宽度（像素）
 export const sidebarWidthAtom = atomWithStorage('sidebarWidth',SIDEBAR_DEFAULT_WIDTH)
 
 
-export const sidebarOpenAtom = atomWithStorage("sidebarOpen",JSON.parse(localStorage.getItem('sidebarOpen') as string)||false)
+export const sidebarOpenAtom = atomWithStorage("sidebarOpen",JSON.parse(localStorage.getItem('sidebarOpen') as string)||true)
