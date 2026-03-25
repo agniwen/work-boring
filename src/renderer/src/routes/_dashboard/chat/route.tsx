@@ -11,6 +11,7 @@ import {
 } from '@renderer/components/ai-elements/prompt-input';
 import { Button } from '@renderer/components/ui/button';
 import { ScrollArea } from '@renderer/components/ui/scroll-area';
+import { orpcChatTransport } from '@renderer/lib/orpc';
 import { createFileRoute } from '@tanstack/react-router';
 import { ArrowDownIcon, MessagesSquare, SendHorizonal, Square } from 'lucide-react';
 import { useStickToBottom } from 'use-stick-to-bottom';
@@ -22,7 +23,9 @@ export const Route = createFileRoute('/_dashboard/chat')({
 });
 
 function Chat() {
-  const { messages, status, sendMessage, stop } = useChat();
+  const { messages, status, sendMessage, stop } = useChat({
+    transport: orpcChatTransport,
+  });
   const { contentRef, isAtBottom, scrollRef, scrollToBottom } = useStickToBottom({
     initial: 'smooth',
     resize: 'smooth',
@@ -48,7 +51,7 @@ function Chat() {
         <ScrollArea className='h-full' viewportClassName='scroll-smooth' viewportRef={scrollRef}>
           <div
             ref={contentRef}
-            className='mx-auto flex min-h-full w-full max-w-4xl flex-col gap-8 px-4 py-6 sm:px-6'
+            className='mx-auto flex min-h-full w-full max-w-4xl flex-col gap-0 px-4 py-6 sm:px-6'
           >
             {messages.length === 0 && (
               <ConversationEmptyState
@@ -60,23 +63,28 @@ function Chat() {
             )}
 
             {messages.map((message) => (
-              <Message key={message.id} className='max-w-[85%]' from={message.role}>
-                <MessageContent>
-                  {message.parts.map((part, i) => {
-                    if (part.type === 'text') {
-                      return (
-                        <MessageResponse
-                          key={i}
-                          isAnimating={isStreaming && i === message.parts.length - 1}
-                        >
-                          {part.text}
-                        </MessageResponse>
-                      );
-                    }
-                    return null;
-                  })}
-                </MessageContent>
-              </Message>
+              <div
+                className='chat-selectable w-full border-b border-border/60 py-6 first:pt-0 last:border-b-0 last:pb-0'
+                key={message.id}
+              >
+                <Message from={message.role}>
+                  <MessageContent>
+                    {message.parts.map((part, i) => {
+                      if (part.type === 'text') {
+                        return (
+                          <MessageResponse
+                            key={i}
+                            isAnimating={isStreaming && i === message.parts.length - 1}
+                          >
+                            {part.text}
+                          </MessageResponse>
+                        );
+                      }
+                      return null;
+                    })}
+                  </MessageContent>
+                </Message>
+              </div>
             ))}
           </div>
         </ScrollArea>

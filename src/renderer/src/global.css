@@ -208,6 +208,12 @@
     -webkit-app-region: no-drag;
     app-region: no-drag;
   }
+
+  .chat-selectable,
+  .chat-selectable * {
+    -webkit-user-select: text;
+    user-select: text;
+  }
 }
 
 @layer base {

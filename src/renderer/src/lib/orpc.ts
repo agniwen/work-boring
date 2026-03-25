@@ -1,4 +1,4 @@
-import { createORPCClient, onError } from '@orpc/client';
+import { createORPCClient, eventIteratorToUnproxiedDataStream, onError } from '@orpc/client';
 import { RPCLink } from '@orpc/client/message-port';
 import type { RouterClient } from '@orpc/server';
 import { createTanstackQueryUtils } from '@orpc/tanstack-query';
@@ -48,3 +48,26 @@ globalORPC.__boringWorkORPC = bindings;
 
 export const orpcClient = bindings.client;
 export const orpc = bindings.orpc;
+
+export const orpcChatTransport = {
+  async sendMessages(options: {
+    abortSignal: AbortSignal | undefined;
+    chatId: string;
+    messages: Parameters<typeof orpcClient.chat.stream>[0]['messages'];
+  }) {
+    const iterator = await orpcClient.chat.stream(
+      {
+        chatId: options.chatId,
+        messages: options.messages,
+      },
+      {
+        signal: options.abortSignal,
+      },
+    );
+
+    return eventIteratorToUnproxiedDataStream(iterator);
+  },
+  async reconnectToStream() {
+    throw new Error('Reconnecting to chat streams is not implemented.');
+  },
+};

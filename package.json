@@ -24,12 +24,13 @@
     "electron-updater": "^6.3.9"
   },
   "devDependencies": {
-    "@orpc/client": "^1.13.10",
-    "@orpc/tanstack-query": "^1.13.10",
+    "@ai-sdk/deepseek": "^2.0.26",
     "@ai-sdk/react": "^3.0.139",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@heroui/react": "^3.0.1",
     "@heroui/styles": "^3.0.1",
+    "@orpc/client": "^1.13.10",
+    "@orpc/tanstack-query": "^1.13.10",
     "@radix-ui/react-use-controllable-state": "^1.2.2",
     "@rive-app/react-webgl2": "^4.27.2",
     "@streamdown/cjk": "^1.0.3",
