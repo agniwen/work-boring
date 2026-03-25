@@ -1,12 +1,7 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@renderer/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
+import { Button } from '@renderer/components/ai-elements/button';
 import { cn } from '@renderer/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 import { XIcon } from 'lucide-react';
@@ -103,14 +98,12 @@ export const ArtifactAction = ({
 
   if (tooltip) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>{button}</TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>{button}</TooltipTrigger>
+        <TooltipContent>
+          <p>{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { Badge } from '@renderer/components/ui/badge';
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import { Switch } from '@renderer/components/ui/switch';
 import { cn } from '@renderer/lib/utils';
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from 'lucide-react';

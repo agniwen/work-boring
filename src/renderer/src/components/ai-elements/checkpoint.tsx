@@ -1,8 +1,8 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
+import { Button } from '@renderer/components/ai-elements/button';
 import { Separator } from '@renderer/components/ui/separator';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
 import type { LucideProps } from 'lucide-react';
 import { BookmarkIcon } from 'lucide-react';
@@ -38,14 +38,12 @@ export const CheckpointTrigger = ({
 }: CheckpointTriggerProps) =>
   tooltip ? (
     <Tooltip>
-      <TooltipTrigger asChild>
+      <TooltipTrigger>
         <Button size={size} type='button' variant={variant} {...props}>
           {children}
         </Button>
       </TooltipTrigger>
-      <TooltipContent align='start' side='bottom'>
-        {tooltip}
-      </TooltipContent>
+      <TooltipContent placement='bottom start'>{tooltip}</TooltipContent>
     </Tooltip>
   ) : (
     <Button size={size} type='button' variant={variant} {...props}>

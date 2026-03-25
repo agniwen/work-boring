@@ -52,12 +52,12 @@ export const orpc = bindings.orpc;
 export const orpcChatTransport = {
   async sendMessages(options: {
     abortSignal: AbortSignal | undefined;
-    chatId: string;
+    sessionId: string;
     messages: Parameters<typeof orpcClient.chat.stream>[0]['messages'];
   }) {
     const iterator = await orpcClient.chat.stream(
       {
-        chatId: options.chatId,
+        sessionId: options.sessionId,
         messages: options.messages,
       },
       {

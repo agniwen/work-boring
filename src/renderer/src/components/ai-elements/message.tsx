@@ -1,13 +1,8 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
+import { Button } from '@renderer/components/ai-elements/button';
 import { ButtonGroup, ButtonGroupText } from '@renderer/components/ui/button-group';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
 import { cjk } from '@streamdown/cjk';
 import { code } from '@streamdown/code';
@@ -39,7 +34,7 @@ export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
 export const MessageContent = ({ children, className, ...props }: MessageContentProps) => (
   <div
     className={cn(
-      'is-user:dark flex w-fit max-w-full min-w-0 flex-col gap-2 overflow-hidden text-sm select-text',
+      'is-user:dark flex max-w-full min-w-0 flex-col gap-2 overflow-hidden text-sm select-text',
       'group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-secondary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground',
       'group-[.is-assistant]:text-foreground',
       className,
@@ -80,14 +75,12 @@ export const MessageAction = ({
 
   if (tooltip) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>{button}</TooltipTrigger>
-          <TooltipContent>
-            <p>{tooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger>{button}</TooltipTrigger>
+        <TooltipContent>
+          <p>{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 

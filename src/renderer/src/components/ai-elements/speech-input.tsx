@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import { Spinner } from '@renderer/components/ui/spinner';
 import { cn } from '@renderer/lib/utils';
 import { MicIcon, SquareIcon } from 'lucide-react';

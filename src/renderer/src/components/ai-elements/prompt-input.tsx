@@ -1,5 +1,6 @@
 'use client';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
 import {
   Command,
   CommandEmpty,
@@ -30,7 +31,6 @@ import {
   SelectValue,
 } from '@renderer/components/ui/select';
 import { Spinner } from '@renderer/components/ui/spinner';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
 import type { ChatStatus, FileUIPart, SourceDocumentUIPart } from 'ai';
 import { CornerDownLeftIcon, ImageIcon, Monitor, PlusIcon, SquareIcon, XIcon } from 'lucide-react';
@@ -987,7 +987,7 @@ export const PromptInputTextarea = ({
 
   return (
     <InputGroupTextarea
-      className={cn('field-sizing-content max-h-48 min-h-16', className)}
+      className={cn('field-sizing-content max-h-48 min-h-10', className)}
       name='message'
       onCompositionEnd={handleCompositionEnd}
       onCompositionStart={handleCompositionStart}
@@ -1031,7 +1031,7 @@ export type PromptInputButtonTooltip =
   | {
       content: ReactNode;
       shortcut?: string;
-      side?: ComponentProps<typeof TooltipContent>['side'];
+      placement?: ComponentProps<typeof TooltipContent>['placement'];
     };
 
 export type PromptInputButtonProps = ComponentProps<typeof InputGroupButton> & {
@@ -1063,12 +1063,12 @@ export const PromptInputButton = ({
 
   const tooltipContent = typeof tooltip === 'string' ? tooltip : tooltip.content;
   const shortcut = typeof tooltip === 'string' ? undefined : tooltip.shortcut;
-  const side = typeof tooltip === 'string' ? 'top' : (tooltip.side ?? 'top');
+  const placement = typeof tooltip === 'string' ? 'top' : (tooltip.placement ?? 'top');
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side={side}>
+      <TooltipTrigger>{button}</TooltipTrigger>
+      <TooltipContent placement={placement}>
         {tooltipContent}
         {shortcut && <span className='ml-2 text-muted-foreground'>{shortcut}</span>}
       </TooltipContent>

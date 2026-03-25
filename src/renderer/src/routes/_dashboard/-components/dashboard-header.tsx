@@ -19,7 +19,7 @@ export function DashboardHeader() {
         <div className='drag-region' style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <Button
             variant='ghost'
-            className='text-olive-500'
+            className='text-neutral-500'
             onClick={handleToggleSidebar}
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >

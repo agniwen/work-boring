@@ -8,6 +8,9 @@
   "scripts": {
     "lint": "oxfmt && oxlint --fix",
     "check": "oxfmt --check",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run check && electron-vite build",
@@ -21,6 +24,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@orpc/server": "^1.13.10",
+    "drizzle-orm": "1.0.0-beta.19",
     "electron-updater": "^6.3.9"
   },
   "devDependencies": {
@@ -54,6 +58,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
+    "drizzle-kit": "1.0.0-beta.19",
     "electron": "^39.2.6",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",

@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import { cn } from '@renderer/lib/utils';
 import type { UIMessage } from 'ai';
 import { ArrowDownIcon, DownloadIcon } from 'lucide-react';

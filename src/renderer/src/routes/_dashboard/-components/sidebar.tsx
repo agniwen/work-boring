@@ -12,6 +12,8 @@ import { Projector, Layers, MessagesSquare } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
+import { SidebarMiddleTarget } from './sidebar-portal';
+
 const RESIZE_HANDLE_WIDTH = 4;
 
 const NAV_ITEMS = [
@@ -104,7 +106,7 @@ export function Sidebar() {
   return (
     <>
       <div
-        className={`absolute top-0 left-0 z-10 h-full shrink-0 border-r border-olive-200 pt-12 ${
+        className={`absolute top-0 left-0 z-10 h-full shrink-0 border-r border-neutral-200 pt-12 ${
           isResizing ? '' : 'transition-transform duration-300 ease-out'
         }`}
         style={{
@@ -125,7 +127,7 @@ export function Sidebar() {
                 key={item.id}
                 id={item.id}
                 textValue={item.label}
-                className='text-olive-500 data-[selected=true]:bg-olive-300/80 data-[selected=true]:font-medium data-[selected=true]:text-olive-800'
+                className='text-neutral-500 data-[selected=true]:bg-default data-[selected=true]:font-medium data-[selected=true]:text-neutral-800'
                 onPress={() => navigate({ to: item.id })}
               >
                 <span>{item.icon}</span>
@@ -133,11 +135,15 @@ export function Sidebar() {
               </ListBox.Item>
             ))}
           </ListBox>
+
+          <div className='mt-3 min-h-0 flex-1 overflow-hidden'>
+            <SidebarMiddleTarget />
+          </div>
         </div>
 
         <button
           className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors ${
-            isHovering || isResizing ? 'bg-olive-400' : 'bg-transparent hover:bg-olive-300'
+            isHovering || isResizing ? 'bg-primary' : 'bg-transparent '
           }`}
           style={{ width: `${RESIZE_HANDLE_WIDTH}px` }}
           onMouseDown={handleMouseDown}

@@ -13,7 +13,7 @@ import { Route as DashboardRouteRouteImport } from './routes/_dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardSkillsRouteRouteImport } from './routes/_dashboard/skills/route'
 import { Route as DashboardDashboardRouteRouteImport } from './routes/_dashboard/dashboard/route'
-import { Route as DashboardChatRouteRouteImport } from './routes/_dashboard/chat/route'
+import { Route as DashboardChatChar123SessionIdChar125RouteImport } from './routes/_dashboard/chat/{-$sessionId}'
 
 const DashboardRouteRoute = DashboardRouteRouteImport.update({
   id: '/_dashboard',
@@ -34,44 +34,45 @@ const DashboardDashboardRouteRoute = DashboardDashboardRouteRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardChatRouteRoute = DashboardChatRouteRouteImport.update({
-  id: '/chat',
-  path: '/chat',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
+const DashboardChatChar123SessionIdChar125Route =
+  DashboardChatChar123SessionIdChar125RouteImport.update({
+    id: '/chat/{-$sessionId}',
+    path: '/chat/{-$sessionId}',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/chat': typeof DashboardChatRouteRoute
   '/dashboard': typeof DashboardDashboardRouteRoute
   '/skills': typeof DashboardSkillsRouteRoute
+  '/chat/{-$sessionId}': typeof DashboardChatChar123SessionIdChar125Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/chat': typeof DashboardChatRouteRoute
   '/dashboard': typeof DashboardDashboardRouteRoute
   '/skills': typeof DashboardSkillsRouteRoute
+  '/chat/{-$sessionId}': typeof DashboardChatChar123SessionIdChar125Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_dashboard': typeof DashboardRouteRouteWithChildren
-  '/_dashboard/chat': typeof DashboardChatRouteRoute
   '/_dashboard/dashboard': typeof DashboardDashboardRouteRoute
   '/_dashboard/skills': typeof DashboardSkillsRouteRoute
+  '/_dashboard/chat/{-$sessionId}': typeof DashboardChatChar123SessionIdChar125Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chat' | '/dashboard' | '/skills'
+  fullPaths: '/' | '/dashboard' | '/skills' | '/chat/{-$sessionId}'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chat' | '/dashboard' | '/skills'
+  to: '/' | '/dashboard' | '/skills' | '/chat/{-$sessionId}'
   id:
     | '__root__'
     | '/'
     | '/_dashboard'
-    | '/_dashboard/chat'
     | '/_dashboard/dashboard'
     | '/_dashboard/skills'
+    | '/_dashboard/chat/{-$sessionId}'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -109,26 +110,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardDashboardRouteRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/_dashboard/chat': {
-      id: '/_dashboard/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof DashboardChatRouteRouteImport
+    '/_dashboard/chat/{-$sessionId}': {
+      id: '/_dashboard/chat/{-$sessionId}'
+      path: '/chat/{-$sessionId}'
+      fullPath: '/chat/{-$sessionId}'
+      preLoaderRoute: typeof DashboardChatChar123SessionIdChar125RouteImport
       parentRoute: typeof DashboardRouteRoute
     }
   }
 }
 
 interface DashboardRouteRouteChildren {
-  DashboardChatRouteRoute: typeof DashboardChatRouteRoute
   DashboardDashboardRouteRoute: typeof DashboardDashboardRouteRoute
   DashboardSkillsRouteRoute: typeof DashboardSkillsRouteRoute
+  DashboardChatChar123SessionIdChar125Route: typeof DashboardChatChar123SessionIdChar125Route
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
-  DashboardChatRouteRoute: DashboardChatRouteRoute,
   DashboardDashboardRouteRoute: DashboardDashboardRouteRoute,
   DashboardSkillsRouteRoute: DashboardSkillsRouteRoute,
+  DashboardChatChar123SessionIdChar125Route:
+    DashboardChatChar123SessionIdChar125Route,
 }
 
 const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(

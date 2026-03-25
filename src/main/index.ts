@@ -1,41 +1,24 @@
 import { join } from 'path';
 
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
-import { onError } from '@orpc/server';
 import { RPCHandler } from '@orpc/server/message-port';
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 
 import icon from '../../resources/icon.png?asset';
 import { ORPC_SERVER_CHANNEL } from '../orpc/channel';
+import { getDatabaseInfo } from './db/client';
+import { runMigrations } from './db/migrate';
 import { createAppRouter } from './orpc/router';
 
-const appRouter = createAppRouter({
-  getSystemInfo: () => ({
-    appName: app.getName(),
-    appVersion: app.getVersion(),
-    platform: process.platform,
-    arch: process.arch,
-    versions: {
-      chrome: process.versions.chrome,
-      electron: process.versions.electron,
-      node: process.versions.node,
-    },
-  }),
-});
-
-const orpcHandler = new RPCHandler(appRouter, {
-  interceptors: [
-    onError((error) => {
-      console.error('oRPC main process error', error);
-    }),
-  ],
-});
+let orpcHandler: RPCHandler<any> | null = null;
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
+    minWidth: 900,
+    minHeight: 670,
     show: false,
     autoHideMenuBar: true,
     transparent: true, // 启用窗口透明
@@ -90,15 +73,39 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'));
   ipcMain.on(ORPC_SERVER_CHANNEL, (event) => {
+    if (!orpcHandler) {
+      console.error('oRPC server is not ready yet.');
+      return;
+    }
+
     const [serverPort] = event.ports;
 
     if (!serverPort) {
       return;
     }
 
-    orpcHandler.upgrade(serverPort);
+    orpcHandler.upgrade(serverPort, { context: appRouter as any });
     serverPort.start();
   });
+
+  runMigrations();
+
+  const appRouter = createAppRouter({
+    getSystemInfo: () => ({
+      appName: app.getName(),
+      appVersion: app.getVersion(),
+      platform: process.platform,
+      arch: process.arch,
+      versions: {
+        chrome: process.versions.chrome,
+        electron: process.versions.electron,
+        node: process.versions.node,
+      },
+      ...getDatabaseInfo(),
+    }),
+  });
+
+  orpcHandler = new RPCHandler(appRouter);
 
   createWindow();
 

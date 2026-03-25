@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import { ButtonGroup, ButtonGroupText } from '@renderer/components/ui/button-group';
 import { cn } from '@renderer/lib/utils';
 import type { Experimental_SpeechResult as SpeechResult } from 'ai';

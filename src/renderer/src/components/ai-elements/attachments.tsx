@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@renderer/components/ui/hover-card';
 import { cn } from '@renderer/lib/utils';
 import type { FileUIPart, SourceDocumentUIPart } from 'ai';

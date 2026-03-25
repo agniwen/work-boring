@@ -1,7 +1,7 @@
 'use client';
 
 import { Avatar, AvatarFallback } from '@renderer/components/ui/avatar';
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import {
   Collapsible,
   CollapsibleContent,

@@ -1,128 +1,244 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides project-specific context for coding agents working in this repository.
 
-## Project Overview
+## Project Summary
 
-This is "Boring Work" - an Electron desktop application built with React 19 and TypeScript. The app features extensive AI-related UI components and follows a modern architecture with TanStack Router, TanStack Query, and Tailwind CSS v4.
+This repository is **Boring Work**, an Electron desktop AI agent application built with:
 
-## Development Commands
+- Electron 39
+- React 19
+- TypeScript
+- Vite / electron-vite
+- TanStack Router
+- TanStack Query
+- Vercel AI SDK
+- oRPC over `MessagePort`
+- local-first persistence with SQLite via `node:sqlite` + Drizzle ORM beta
+
+The current product direction is:
+
+- desktop-first
+- local-first
+- AI-agent oriented
+- optimized for chat-driven workflows first
+- designed to keep application data in the local app data directory instead of relying on a remote backend
+
+## What The App Does
+
+The app currently includes:
+
+- a dashboard shell
+- a chat page powered by AI SDK streaming
+- a library of AI-centric UI components
+- main/renderer communication through oRPC
+- local persistence for chat sessions and chat messages
+
+The persistence model is currently focused on:
+
+- `chat_sessions`
+- `chat_messages`
+
+This is the first durable local state in the app and is intended to be the foundation for later agent memory, run history, checkpoints, or tool logs.
+
+## Core Architecture
+
+### Process Boundaries
+
+The app follows the normal Electron three-process split:
+
+1. `src/main/`
+   - Electron main process
+   - owns SQLite access
+   - runs migrations on startup
+   - hosts oRPC handlers
+   - talks to the model provider
+
+2. `src/preload/`
+   - bridges renderer and main
+   - upgrades a `MessagePort` connection for oRPC
+
+3. `src/renderer/`
+   - React application
+   - never talks to SQLite directly
+   - uses oRPC client utilities and AI SDK hooks
+
+### Persistence Rule
+
+**SQLite is main-process only.**
+
+Do not add direct database access in renderer code. Renderer state is UI state only; persisted state must go through main-process APIs.
+
+### Chat Data Flow
+
+Current chat flow:
+
+1. renderer loads or creates a session
+2. renderer fetches persisted messages for that session
+3. `useChat` renders and streams messages in-memory
+4. message submission goes through oRPC to main
+5. main persists the user message
+6. main creates an assistant placeholder row
+7. main streams model output
+8. main finalizes the assistant row as `done`, `error`, or `aborted`
+
+This means the database is the source of truth for chat history, not the React hook.
+
+## Important Directories
+
+### Main Process
+
+- `src/main/index.ts`
+  - app startup
+  - migration execution
+  - window creation
+  - oRPC server wiring
+
+- `src/main/orpc/router.ts`
+  - main-process procedures exposed to renderer
+
+- `src/main/db/`
+  - Drizzle schema
+  - DB client bootstrap
+  - runtime migration
+  - repositories
+
+- `src/main/services/`
+  - business logic that should not live in route handlers
+
+### Renderer
+
+- `src/renderer/src/routes/_dashboard/chat/route.tsx`
+  - current chat UI
+  - session selection
+  - history restore
+  - streaming interaction
+
+- `src/renderer/src/lib/orpc.ts`
+  - renderer oRPC client
+  - AI SDK transport bridge to main process
+
+- `src/renderer/src/components/ai-elements/`
+  - reusable AI-oriented UI building blocks
+
+### Shared Types
+
+- `src/orpc/app-router.ts`
+  - shared router type for renderer/main typing
+
+## Database Notes
+
+The app now uses:
+
+- `node:sqlite`
+- `drizzle-orm`
+- `drizzle-kit`
+
+### Migration Workflow
+
+When schema changes:
+
+1. edit `src/main/db/schema.ts`
+2. run `pnpm db:generate`
+3. commit the generated `drizzle/` migration output
+4. app startup applies migrations automatically
+
+Do not treat `push` as the normal production migration flow.
+
+### Database File Location
+
+The runtime DB file is created under:
+
+- `app.getPath('userData')/app.db`
+
+Do not move this into the repo, build output, or install directory.
+
+## Commands
+
+### Development
 
 ```bash
-# Development
-pnpm dev              # Start Electron app in development mode with HMR
-pnpm start            # Preview production build
-
-# Code Quality
-pnpm lint             # Format code with oxfmt, then run oxlint with auto-fix
-pnpm check            # Check code formatting with oxfmt (no changes)
-
-# Building
-pnpm build            # Check formatting and build for production
-pnpm build:mac        # Check formatting, build, and package for macOS
-pnpm build:win        # Build and package for Windows
-pnpm build:linux      # Check formatting, build, and package for Linux
-pnpm build:unpack     # Build without packaging (for testing)
+pnpm install
+pnpm dev
+pnpm start
 ```
 
-## Architecture
+### Quality
 
-### Three-Process Model
-
-Electron apps run in three separate processes:
-
-1. **Main Process** (`src/main/index.ts`)
-   - Node.js environment
-   - Manages app lifecycle, window creation, and native APIs
-   - Handles IPC communication with renderer
-   - App name: "Boring Work" (app ID: `com.boringwork.app`)
-
-2. **Preload Script** (`src/preload/index.ts`)
-   - Bridge between main and renderer processes
-   - Exposes safe APIs to renderer via `contextBridge`
-   - Currently exposes `window.electron` and `window.api`
-
-3. **Renderer Process** (`src/renderer/`)
-   - React 19 application running in Chromium
-   - Uses TanStack Router for routing
-   - Uses TanStack Query for data fetching
-   - Styled with Tailwind CSS v4
-
-### Key Architectural Patterns
-
-- **File-based Routing**: Routes are defined in `src/renderer/src/routes/` and auto-generate `routeTree.gen.ts`
-- **Router Context**: QueryClient is passed through router context for data fetching integration
-- **Import Alias**: Use `@renderer` alias for imports within renderer code (configured in `electron.vite.config.ts`)
-- **Type Safety**: Full TypeScript coverage with type-aware linting via oxlint
-
-### Naming Conventions
-
-- **Files and Folders**: Use kebab-case for all file and folder names
-  - Components: `sidebar.tsx`, `chat-input.tsx`
-  - Folders: `-components`, `ai-elements`, `query-client.ts`
-  - Route-specific component folders use `-components` prefix (e.g., `routes/_dashboard/-components/`)
-
-## Project Structure
-
-```
-src/
-├── main/           # Electron main process (Node.js)
-│   └── index.ts    # App lifecycle, window management, IPC handlers
-├── preload/        # Preload scripts (security bridge)
-│   ├── index.ts    # Context bridge API exposure
-│   └── index.d.ts  # Type definitions for exposed APIs
-└── renderer/       # React application (Chromium)
-    └── src/
-        ├── main.tsx              # Entry point
-        ├── router.tsx            # Router configuration
-        ├── routes/               # File-based routes (auto-generates routeTree.gen.ts)
-        │   ├── __root.tsx        # Root layout
-        │   ├── index.tsx         # Home route
-        │   └── dashboard/        # Nested routes
-        ├── components/
-        │   ├── ui/               # Reusable UI components
-        │   └── ai-elements/      # AI-specific components (agent, artifact, canvas, etc.)
-        └── lib/
-            ├── query-client.ts   # TanStack Query configuration
-            └── utils.ts          # Utility functions
+```bash
+pnpm check
+pnpm lint
+pnpm exec tsc -p tsconfig.node.json --noEmit
+pnpm exec tsc -p tsconfig.web.json --noEmit
 ```
 
-## Important Technical Details
+### Database
 
-### Routing
+```bash
+pnpm db:generate
+pnpm db:migrate
+pnpm db:studio
+```
 
-- Uses TanStack Router with file-based routing
-- Routes in `src/renderer/src/routes/` auto-generate `routeTree.gen.ts` (do not edit manually)
-- Router context includes QueryClient for seamless data fetching integration
-- Default preload strategy: `intent` (preload on hover/focus)
+### Build
 
-### IPC Communication
+```bash
+pnpm build
+pnpm build:unpack
+pnpm build:mac
+pnpm build:win
+pnpm build:linux
+```
 
-- Main ↔ Renderer communication happens through preload script
-- Use `contextBridge.exposeInMainWorld()` to safely expose APIs
-- Currently exposes: `window.electron` (electron-toolkit APIs) and `window.api` (custom APIs)
+## Coding Guidance For This Repo
 
-### Code Quality Tools
+### Prefer These Patterns
 
-- **oxlint**: Type-aware linting with React, TypeScript, import, jsx-a11y, unicorn, promise, node, and oxc plugins
-- **oxfmt**: Code formatting (check with `pnpm check`)
-- Linting ignores: `dist/`, `.output/`, `src/generated/`, `src/renderer/src/routeTree.gen.ts`
+- keep persistence logic in `src/main/services` and `src/main/db`
+- keep route handlers thin
+- keep renderer focused on UI/query/state orchestration
+- use TanStack Query for persisted data reads and cache invalidation
+- preserve the file-based route structure
+- use the `@renderer/*` alias in renderer code
 
-### Build Configuration
+### Avoid These Mistakes
 
-- Uses `electron-vite` for fast builds with Vite
-- Separate configurations for main, preload, and renderer processes
-- Renderer uses TanStack Router plugin and Tailwind CSS plugin
-- Build outputs to `out/` directory
+- do not import SQLite or Drizzle directly in renderer code
+- do not put long business workflows straight into React components
+- do not make the AI SDK hook the persistence source of truth
+- do not edit `src/renderer/src/routeTree.gen.ts` manually
+- do not store app data inside the repo working tree
 
-## Component Library
+### Session/Message Semantics
 
-The project includes two component sets:
+The current chat persistence assumptions are:
 
-1. **UI Components** (`components/ui/`): Standard UI primitives (button, input, dialog, etc.)
-2. **AI Elements** (`components/ai-elements/`): Specialized AI interface components including:
-   - Agent, artifact, canvas, chain-of-thought
-   - Code blocks, terminals, test results
-   - Conversation, message, prompt input
-   - File trees, schemas, sandboxes
-   - And many more AI-specific UI patterns
+- multiple sessions
+- one active session in the UI at a time
+- messages ordered by `sequence`
+- `parts_json` stores AI SDK message parts as JSON
+- assistant rows are finalized after streaming, not token-by-token
+
+If later work adds:
+
+- tool calls
+- attachments
+- checkpoints
+- runs
+- vector memory
+
+prefer evolving the schema deliberately instead of overloading the current chat tables.
+
+## Packaging Notes
+
+The build must preserve access to the `drizzle/` migration folder at runtime. If packaging changes break startup migration resolution, update the migration path resolver and electron-builder resource config together.
+
+## Good First Places To Look
+
+If you are debugging product behavior:
+
+- startup and app wiring: `src/main/index.ts`
+- main RPC surface: `src/main/orpc/router.ts`
+- database schema and migration logic: `src/main/db/`
+- chat UX and session restore: `src/renderer/src/routes/_dashboard/chat/route.tsx`
+- renderer/main transport wiring: `src/renderer/src/lib/orpc.ts`

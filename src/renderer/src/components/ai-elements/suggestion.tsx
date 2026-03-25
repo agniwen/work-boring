@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Button } from '@renderer/components/ai-elements/button';
 import { ScrollArea, ScrollBar } from '@renderer/components/ui/scroll-area';
 import { cn } from '@renderer/lib/utils';
 import type { ComponentProps } from 'react';

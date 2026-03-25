@@ -1,18 +1,13 @@
 'use client';
 
-import { Button } from '@renderer/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
+import { Button } from '@renderer/components/ai-elements/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@renderer/components/ui/collapsible';
 import { Input } from '@renderer/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@renderer/components/ui/tooltip';
 import { cn } from '@renderer/lib/utils';
 import { ChevronDownIcon } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
@@ -103,25 +98,23 @@ export const WebPreviewNavigationButton = ({
   children,
   ...props
 }: WebPreviewNavigationButtonProps) => (
-  <TooltipProvider>
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          className='h-8 w-8 p-0 hover:text-foreground'
-          disabled={disabled}
-          onClick={onClick}
-          size='sm'
-          variant='ghost'
-          {...props}
-        >
-          {children}
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
-  </TooltipProvider>
+  <Tooltip>
+    <TooltipTrigger>
+      <Button
+        className='h-8 w-8 p-0 hover:text-foreground'
+        disabled={disabled}
+        onClick={onClick}
+        size='sm'
+        variant='ghost'
+        {...props}
+      >
+        {children}
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent>
+      <p>{tooltip}</p>
+    </TooltipContent>
+  </Tooltip>
 );
 
 export type WebPreviewUrlProps = ComponentProps<typeof Input>;
