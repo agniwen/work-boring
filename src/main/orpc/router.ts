@@ -1,13 +1,13 @@
-import { createDeepSeek } from '@ai-sdk/deepseek';
 import { os, streamToEventIterator, type } from '@orpc/server';
 
+import { createWorkspaceAgentRuntime, type WorkspaceAgentUIMessage } from '../agents';
 import { ChatMessageRepository } from '../db/repositories/chat-message-repo';
 import { ChatSessionRepository } from '../db/repositories/chat-session-repo';
 import { ChatService } from '../services/chat-service';
 
 const emptyInput = type<void>();
 const createChatSessionInput = type<{ title?: string } | void>();
-const chatStreamInput = type<{ sessionId: string; messages: import('ai').UIMessage[] }>();
+const chatStreamInput = type<{ sessionId: string; messages: WorkspaceAgentUIMessage[] }>();
 const chatSessionByIdInput = type<{ sessionId: string }>();
 const renameChatSessionInput = type<{ sessionId: string; title: string }>();
 
@@ -28,41 +28,14 @@ interface CreateAppRouterDeps {
   getSystemInfo: () => Promise<SystemInfo> | SystemInfo;
 }
 
-function getMainEnv() {
-  return {
-    deepSeekApiKey: import.meta.env.MAIN_VITE_DEEPSEEK_API_KEY ?? process.env['DEEPSEEK_API_KEY'],
-    deepSeekBaseUrl:
-      import.meta.env.MAIN_VITE_DEEPSEEK_BASE_URL ??
-      import.meta.env.MAIN_VITE_DEEPSEEK_BASEURL ??
-      process.env['DEEPSEEK_BASE_URL'] ??
-      process.env['DEEPSEEK_BASEURL'],
-    deepSeekModel: import.meta.env.MAIN_VITE_DEEPSEEK_MODEL ?? process.env['DEEPSEEK_MODEL'],
-  };
-}
-
-function getDeepSeekProvider() {
-  const { deepSeekApiKey, deepSeekBaseUrl } = getMainEnv();
-  const apiKey = deepSeekApiKey?.trim();
-
-  if (!apiKey) {
-    throw new Error(
-      'Missing DeepSeek API key. Set MAIN_VITE_DEEPSEEK_API_KEY in .env or DEEPSEEK_API_KEY in the process environment.',
-    );
-  }
-
-  return createDeepSeek({
-    apiKey,
-    baseURL: deepSeekBaseUrl?.trim() || undefined,
-  });
-}
-
 export function createAppRouter(deps: CreateAppRouterDeps) {
   const sessionRepository = new ChatSessionRepository();
   const messageRepository = new ChatMessageRepository();
+  const workspaceAgentRuntime = createWorkspaceAgentRuntime();
   const chatService = new ChatService({
-    getModel: () => getDeepSeekProvider()(getMainEnv().deepSeekModel?.trim() || 'deepseek-chat'),
-    getModelName: () => getMainEnv().deepSeekModel?.trim() || 'deepseek-chat',
-    getSystemPrompt: () => 'You are a helpful assistant for a desktop productivity app.',
+    agent: workspaceAgentRuntime.agent,
+    getModelName: () => workspaceAgentRuntime.modelName,
+    getSystemPrompt: () => workspaceAgentRuntime.instructions,
     messageRepository,
     sessionRepository,
   });
@@ -70,8 +43,7 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
   return {
     chat: {
       stream: os.input(chatStreamInput).handler(async ({ input }) => {
-        const result = await chatService.streamChat(input);
-        return streamToEventIterator(result.toUIMessageStream());
+        return streamToEventIterator(await chatService.streamChat(input));
       }),
     },
     chatMessage: {

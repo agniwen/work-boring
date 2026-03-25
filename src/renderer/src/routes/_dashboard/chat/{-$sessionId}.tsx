@@ -18,19 +18,32 @@ import {
   PromptInputTextarea,
   type PromptInputMessage,
 } from '@renderer/components/ai-elements/prompt-input';
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from '@renderer/components/ai-elements/reasoning';
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolInput,
+  ToolOutput,
+} from '@renderer/components/ai-elements/tool';
 import { Button } from '@renderer/components/ui/button';
 import { ScrollArea } from '@renderer/components/ui/scroll-area';
 import { orpc, orpcChatTransport, orpcClient } from '@renderer/lib/orpc';
 import { queryClient } from '@renderer/lib/query-client';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import type { UIMessage } from 'ai';
+import { isToolUIPart } from 'ai';
 import { ArrowDownIcon, MessagesSquare, Plus, SendHorizonal, Square, Trash2 } from 'lucide-react';
 import { startTransition, useEffect, useRef, useState } from 'react';
 import { useStickToBottom } from 'use-stick-to-bottom';
 
 import { DashboardHeaderStartContent } from '../-components/dashboard-header-portal';
 import { SidebarMiddleContent } from '../-components/sidebar-portal';
+import type { WorkspaceAgentUIMessage } from '../../../../../main/agents';
 
 export const Route = createFileRoute('/_dashboard/chat/{-$sessionId}')({
   component: Chat,
@@ -40,6 +53,68 @@ const newChatNavigation = {
   params: { sessionId: undefined } as { sessionId?: string },
   to: '/chat/{-$sessionId}' as const,
 };
+
+function renderMessagePart(
+  part: WorkspaceAgentUIMessage['parts'][number],
+  index: number,
+  isStreaming: boolean,
+) {
+  if (part.type === 'text') {
+    return (
+      <MessageResponse key={index} isAnimating={isStreaming}>
+        {part.text}
+      </MessageResponse>
+    );
+  }
+
+  if (part.type === 'reasoning') {
+    return (
+      <Reasoning
+        defaultOpen={part.state === 'streaming'}
+        isStreaming={part.state === 'streaming'}
+        key={index}
+      >
+        <ReasoningTrigger />
+        <ReasoningContent>{part.text}</ReasoningContent>
+      </Reasoning>
+    );
+  }
+
+  if (isToolUIPart(part)) {
+    const content =
+      part.input !== undefined ||
+      part.state === 'output-available' ||
+      part.state === 'output-error' ||
+      part.state === 'output-denied' ? (
+        <ToolContent>
+          {part.input !== undefined ? <ToolInput input={part.input} /> : null}
+          {part.state === 'output-available' ||
+          part.state === 'output-error' ||
+          part.state === 'output-denied' ? (
+            <ToolOutput errorText={part.errorText} output={part.output} />
+          ) : null}
+        </ToolContent>
+      ) : null;
+
+    if (part.type === 'dynamic-tool') {
+      return (
+        <Tool defaultOpen={part.state !== 'output-available'} key={`${part.toolCallId}:${index}`}>
+          <ToolHeader state={part.state} toolName={part.toolName} type={part.type} />
+          {content}
+        </Tool>
+      );
+    }
+
+    return (
+      <Tool defaultOpen={part.state !== 'output-available'} key={`${part.toolCallId}:${index}`}>
+        <ToolHeader state={part.state} type={part.type} />
+        {content}
+      </Tool>
+    );
+  }
+
+  return null;
+}
 
 function Chat() {
   const navigate = Route.useNavigate();
@@ -51,7 +126,7 @@ function Chat() {
     queryKey: ['chat-messages', sessionId],
     queryFn: async () => {
       if (!sessionId) {
-        return [] as UIMessage[];
+        return [] as WorkspaceAgentUIMessage[];
       }
 
       return orpcClient.chatMessage.listBySession({ sessionId });
@@ -133,7 +208,7 @@ function Chat() {
 function ChatWorkspace(props: {
   activeSessionId: string | null;
   activeSessionTitle: string;
-  initialMessages: UIMessage[];
+  initialMessages: WorkspaceAgentUIMessage[];
   isSessionLoading: boolean;
   onConsumePendingDraft: () => void;
   onCreateSession: () => void;
@@ -146,7 +221,7 @@ function ChatWorkspace(props: {
 }) {
   const { activeSessionId, onConsumePendingDraft, pendingDraftMessage } = props;
   const pendingDraftTriggeredRef = useRef(false);
-  const { messages, status, sendMessage, stop } = useChat({
+  const { messages, status, sendMessage, stop } = useChat<WorkspaceAgentUIMessage>({
     id: props.activeSessionId ?? 'new-chat',
     messages: props.initialMessages,
     transport: {
@@ -305,19 +380,9 @@ function ChatWorkspace(props: {
                   >
                     <Message from={message.role}>
                       <MessageContent>
-                        {message.parts.map((part, i) => {
-                          if (part.type === 'text') {
-                            return (
-                              <MessageResponse
-                                key={i}
-                                isAnimating={isStreaming && i === message.parts.length - 1}
-                              >
-                                {part.text}
-                              </MessageResponse>
-                            );
-                          }
-                          return null;
-                        })}
+                        {message.parts.map((part, i) =>
+                          renderMessagePart(part, i, isStreaming && i === message.parts.length - 1),
+                        )}
                       </MessageContent>
                     </Message>
                   </div>

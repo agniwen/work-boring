@@ -1,7 +1,7 @@
-import type { UIMessage } from 'ai';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
+import type { WorkspaceAgentUIMessage } from '../../agents';
 import { getDb } from '../client';
 import { chatMessages, type ChatMessageRow } from '../schema';
 
@@ -10,7 +10,7 @@ function now() {
 }
 
 function parseParts(partsJson: string) {
-  return JSON.parse(partsJson) as UIMessage['parts'];
+  return JSON.parse(partsJson) as WorkspaceAgentUIMessage['parts'];
 }
 
 export class ChatMessageRepository {
@@ -39,8 +39,8 @@ export class ChatMessageRepository {
 
   async createMessage(input: {
     sessionId: string;
-    role: UIMessage['role'];
-    parts: UIMessage['parts'];
+    role: WorkspaceAgentUIMessage['role'];
+    parts: WorkspaceAgentUIMessage['parts'];
     status: string;
     errorText?: string | null;
     sequence?: number;
@@ -69,7 +69,7 @@ export class ChatMessageRepository {
 
   async updateMessage(
     messageId: string,
-    input: { parts?: UIMessage['parts']; status: string; errorText?: string | null },
+    input: { parts?: WorkspaceAgentUIMessage['parts']; status: string; errorText?: string | null },
   ) {
     const db = getDb();
     const updatePayload: Partial<typeof chatMessages.$inferInsert> = {
@@ -91,10 +91,10 @@ export class ChatMessageRepository {
     return message ?? null;
   }
 
-  toUIMessage(row: ChatMessageRow): UIMessage {
+  toUIMessage(row: ChatMessageRow): WorkspaceAgentUIMessage {
     return {
       id: row.id,
-      role: row.role as UIMessage['role'],
+      role: row.role as WorkspaceAgentUIMessage['role'],
       parts: parseParts(row.partsJson),
     };
   }

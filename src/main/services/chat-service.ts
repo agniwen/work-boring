@@ -1,24 +1,25 @@
-import { convertToModelMessages, streamText, type UIMessage } from 'ai';
+import { createAgentUIStream } from 'ai';
 
+import type { WorkspaceAgent, WorkspaceAgentUIMessage } from '../agents';
 import { ChatMessageRepository } from '../db/repositories/chat-message-repo';
 import { ChatSessionRepository } from '../db/repositories/chat-session-repo';
 
 interface StreamChatInput {
-  messages: UIMessage[];
+  messages: WorkspaceAgentUIMessage[];
   sessionId: string;
 }
 
 interface ChatServiceDeps {
-  getModel: () => Parameters<typeof streamText>[0]['model'];
+  agent: WorkspaceAgent;
   getModelName: () => string;
   getSystemPrompt: () => string;
   messageRepository: ChatMessageRepository;
   sessionRepository: ChatSessionRepository;
 }
 
-type StreamTextResult = ReturnType<typeof streamText>;
+type AgentUIMessageStream = Awaited<ReturnType<typeof createAgentUIStream>>;
 
-function extractLastUserMessage(messages: UIMessage[]) {
+function extractLastUserMessage(messages: WorkspaceAgentUIMessage[]) {
   for (let i = messages.length - 1; i >= 0; i -= 1) {
     const message = messages[i];
 
@@ -30,20 +31,12 @@ function extractLastUserMessage(messages: UIMessage[]) {
   return null;
 }
 
-function getTextFromMessage(message: UIMessage) {
+function getTextFromMessage(message: WorkspaceAgentUIMessage) {
   return message.parts
     .filter((part) => part.type === 'text')
     .map((part) => part.text)
     .join('\n')
     .trim();
-}
-
-function toAssistantParts(text: string): UIMessage['parts'] {
-  if (!text.trim()) {
-    return [];
-  }
-
-  return [{ type: 'text', text }];
 }
 
 export class ChatService {
@@ -81,7 +74,7 @@ export class ChatService {
     return this.deps.messageRepository.listBySession(sessionId);
   }
 
-  async streamChat(input: StreamChatInput): Promise<StreamTextResult> {
+  async streamChat(input: StreamChatInput): Promise<AgentUIMessageStream> {
     const session = await this.deps.sessionRepository.getById(input.sessionId);
 
     if (!session) {
@@ -115,32 +108,37 @@ export class ChatService {
       sequence: userSequence + 1,
     });
 
-    const result = streamText({
-      model: this.deps.getModel(),
-      system: this.deps.getSystemPrompt(),
-      messages: await convertToModelMessages(input.messages),
-    });
+    try {
+      return await createAgentUIStream({
+        agent: this.deps.agent,
+        uiMessages: input.messages,
+        originalMessages: input.messages,
+        generateMessageId: () => assistantMessage.id,
+        onFinish: async ({ isAborted, responseMessage }) => {
+          const status = isAborted ? 'aborted' : 'done';
 
-    void Promise.resolve(result.text).then(
-      async (text) => {
-        await this.deps.messageRepository.updateMessage(assistantMessage.id, {
-          parts: toAssistantParts(text),
-          status: 'done',
-        });
-        await this.deps.sessionRepository.touch(input.sessionId);
-      },
-      async (error) => {
-        const status = error instanceof Error && error.name === 'AbortError' ? 'aborted' : 'error';
+          await this.deps.messageRepository.updateMessage(assistantMessage.id, {
+            parts: responseMessage.parts,
+            status,
+            errorText: null,
+          });
+          await this.deps.sessionRepository.touch(input.sessionId);
+        },
+        onError: (error) => {
+          return error instanceof Error ? error.message : 'Unknown agent stream error';
+        },
+      });
+    } catch (error) {
+      const errorText = error instanceof Error ? error.message : 'Unknown chat stream error';
 
-        await this.deps.messageRepository.updateMessage(assistantMessage.id, {
-          parts: [],
-          status,
-          errorText: error instanceof Error ? error.message : 'Unknown chat stream error',
-        });
-        await this.deps.sessionRepository.touch(input.sessionId);
-      },
-    );
+      await this.deps.messageRepository.updateMessage(assistantMessage.id, {
+        parts: [],
+        status: 'error',
+        errorText,
+      });
+      await this.deps.sessionRepository.touch(input.sessionId);
 
-    return result;
+      throw error;
+    }
   }
 }

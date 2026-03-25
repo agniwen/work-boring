@@ -134,26 +134,49 @@ const tokensCache = new Map<string, TokenizedCode>();
 // Subscribers for async token updates
 const subscribers = new Map<string, Set<(result: TokenizedCode) => void>>();
 
+const LANGUAGE_ALIASES: Partial<Record<BundledLanguage, BundledLanguage>> = {
+  cjs: 'javascript',
+  cts: 'typescript',
+  js: 'javascript',
+  jsx: 'jsx',
+  md: 'markdown',
+  mjs: 'javascript',
+  mts: 'typescript',
+  py: 'python',
+  rb: 'ruby',
+  rs: 'rust',
+  sh: 'bash',
+  ts: 'typescript',
+  tsx: 'tsx',
+  yml: 'yaml',
+  zsh: 'bash',
+};
+
+const normalizeLanguage = (language: BundledLanguage): BundledLanguage =>
+  LANGUAGE_ALIASES[language] ?? language;
+
 const getTokensCacheKey = (code: string, language: BundledLanguage) => {
+  const normalizedLanguage = normalizeLanguage(language);
   const start = code.slice(0, 100);
   const end = code.length > 100 ? code.slice(-100) : '';
-  return `${language}:${code.length}:${start}:${end}`;
+  return `${normalizedLanguage}:${code.length}:${start}:${end}`;
 };
 
 const getHighlighter = (
   language: BundledLanguage,
 ): Promise<HighlighterGeneric<BundledLanguage, BundledTheme>> => {
-  const cached = highlighterCache.get(language);
+  const normalizedLanguage = normalizeLanguage(language);
+  const cached = highlighterCache.get(normalizedLanguage);
   if (cached) {
     return cached;
   }
 
   const highlighterPromise = createHighlighter({
-    langs: [language],
+    langs: [normalizedLanguage],
     themes: ['github-light', 'github-dark'],
   });
 
-  highlighterCache.set(language, highlighterPromise);
+  highlighterCache.set(normalizedLanguage, highlighterPromise);
   return highlighterPromise;
 };
 
@@ -180,6 +203,7 @@ export const highlightCode = (
   // oxlint-disable-next-line eslint-plugin-promise(prefer-await-to-callbacks)
   callback?: (result: TokenizedCode) => void,
 ): TokenizedCode | null => {
+  const normalizedLanguage = normalizeLanguage(language);
   const tokensCacheKey = getTokensCacheKey(code, language);
 
   // Return cached result if available
@@ -201,7 +225,7 @@ export const highlightCode = (
     // oxlint-disable-next-line eslint-plugin-promise(prefer-await-to-then)
     .then((highlighter) => {
       const availableLangs = highlighter.getLoadedLanguages();
-      const langToUse = availableLangs.includes(language) ? language : 'text';
+      const langToUse = availableLangs.includes(normalizedLanguage) ? normalizedLanguage : 'text';
 
       const result = highlighter.codeToTokens(code, {
         lang: langToUse,

@@ -35,7 +35,7 @@ export const MessageContent = ({ children, className, ...props }: MessageContent
   <div
     className={cn(
       'is-user:dark pointer-events-auto flex max-w-full min-w-0 flex-col gap-2 overflow-hidden text-sm select-text',
-      'group-[.is-user]:ml-auto group-[.is-user]:rounded-lg group-[.is-user]:bg-surface-tertiary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground',
+      'group-[.is-user]:ml-auto group-[.is-user]:rounded-2xl group-[.is-user]:bg-surface-tertiary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground',
       'group-[.is-assistant]:text-foreground',
       className,
     )}
@@ -275,6 +275,8 @@ export const MessageResponse = memo(
     <Streamdown
       className={cn(
         'pointer-events-auto size-full select-text [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+        '[&_code]:rounded-md [&_code]:bg-muted/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em] [&_code]:text-foreground',
+        '[&_pre_code]:rounded-none [&_pre_code]:bg-transparent [&_pre_code]:px-0 [&_pre_code]:py-0',
         className,
       )}
       plugins={streamdownPlugins}
@@ -291,7 +293,10 @@ export type MessageToolbarProps = ComponentProps<'div'>;
 
 export const MessageToolbar = ({ className, children, ...props }: MessageToolbarProps) => (
   <div
-    className={cn('pointer-events-auto mt-4 flex w-full items-center justify-between gap-4', className)}
+    className={cn(
+      'pointer-events-auto mt-4 flex w-full items-center justify-between gap-4',
+      className,
+    )}
     {...props}
   >
     {children}
