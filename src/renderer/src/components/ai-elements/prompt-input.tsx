@@ -1,6 +1,6 @@
 'use client';
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
+import { Button as HeroButton, Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
 import {
   Command,
   CommandEmpty,
@@ -862,7 +862,9 @@ export const PromptInput = ({
         type='file'
       />
       <form className={cn('w-full', className)} onSubmit={handleSubmit} ref={formRef} {...props}>
-        <InputGroup className='overflow-hidden'>{children}</InputGroup>
+        <InputGroup className='overflow-hidden has-[[data-slot=input-group-control]:focus-visible]:border-input has-[[data-slot=input-group-control]:focus-visible]:ring-0'>
+          {children}
+        </InputGroup>
       </form>
     </>
   );
@@ -987,7 +989,10 @@ export const PromptInputTextarea = ({
 
   return (
     <InputGroupTextarea
-      className={cn('field-sizing-content max-h-48 min-h-10', className)}
+      className={cn(
+        'field-sizing-content max-h-48 min-h-10 focus-visible:border-0 focus-visible:ring-0 aria-invalid:border-0 aria-invalid:ring-0',
+        className,
+      )}
       name='message'
       onCompositionEnd={handleCompositionEnd}
       onCompositionStart={handleCompositionStart}
@@ -1034,27 +1039,82 @@ export type PromptInputButtonTooltip =
       placement?: ComponentProps<typeof TooltipContent>['placement'];
     };
 
-export type PromptInputButtonProps = ComponentProps<typeof InputGroupButton> & {
-  tooltip?: PromptInputButtonTooltip;
+type PromptInputButtonSize = NonNullable<ComponentProps<typeof InputGroupButton>['size']>;
+type PromptInputButtonVariant =
+  | NonNullable<ComponentProps<typeof InputGroupButton>['variant']>
+  | 'tertiary';
+
+const promptInputButtonVariantMap: Record<
+  PromptInputButtonVariant,
+  'primary' | 'outline' | 'secondary' | 'ghost' | 'danger-soft' | 'tertiary'
+> = {
+  default: 'primary',
+  destructive: 'danger-soft',
+  ghost: 'ghost',
+  link: 'ghost',
+  outline: 'outline',
+  secondary: 'secondary',
+  tertiary: 'tertiary',
 };
+
+const promptInputButtonSizeMap: Record<PromptInputButtonSize, 'sm' | 'md' | 'lg'> = {
+  xs: 'sm',
+  sm: 'sm',
+  'icon-xs': 'sm',
+  'icon-sm': 'sm',
+};
+
+const isPromptInputButtonIconOnly = (size: PromptInputButtonSize) => size.startsWith('icon');
+
+export type PromptInputButtonProps = Omit<
+  ComponentProps<typeof InputGroupButton>,
+  'disabled' | 'size' | 'variant'
+> &
+  Omit<
+    ComponentProps<typeof HeroButton>,
+    'children' | 'className' | 'isDisabled' | 'isIconOnly' | 'size' | 'type' | 'variant'
+  > & {
+    disabled?: boolean;
+    isDisabled?: boolean;
+    isIconOnly?: boolean;
+    size?: PromptInputButtonSize;
+    tooltip?: PromptInputButtonTooltip;
+    variant?: PromptInputButtonVariant;
+  };
 
 export const PromptInputButton = ({
   variant = 'ghost',
   className,
   size,
   tooltip,
+  disabled,
+  isDisabled,
+  isIconOnly,
+  type = 'button',
+  value,
+  children,
   ...props
 }: PromptInputButtonProps) => {
-  const newSize = size ?? (Children.count(props.children) > 1 ? 'sm' : 'icon-sm');
+  const resolvedSize = size ?? (Children.count(children) > 1 ? 'sm' : 'icon-sm');
+  const resolvedDisabled = isDisabled ?? disabled;
+  const resolvedIconOnly = isIconOnly ?? isPromptInputButtonIconOnly(resolvedSize);
+  const heroProps = props as Omit<ComponentProps<typeof HeroButton>, 'children'>;
 
   const button = (
-    <InputGroupButton
+    <HeroButton
       className={cn(className)}
-      size={newSize}
-      type='button'
-      variant={variant}
-      {...props}
-    />
+      isDisabled={resolvedDisabled}
+      isIconOnly={resolvedIconOnly}
+      size={promptInputButtonSizeMap[resolvedSize]}
+      type={type}
+      value={
+        typeof value === 'string' ? value : typeof value === 'number' ? String(value) : undefined
+      }
+      variant={promptInputButtonVariantMap[variant]}
+      {...heroProps}
+    >
+      {children}
+    </HeroButton>
   );
 
   if (!tooltip) {

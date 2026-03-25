@@ -1,4 +1,4 @@
-import { Label, ListBox } from '@heroui/react';
+import { Label, ListBox, Surface } from '@heroui/react';
 import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_WIDTH,
@@ -6,6 +6,7 @@ import {
   sidebarResizingAtom,
   sidebarWidthAtom,
 } from '@renderer/atom/app';
+import { cn } from '@renderer/lib/utils';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
 import { Projector, Layers, MessagesSquare } from 'lucide-react';
@@ -120,18 +121,27 @@ export function Sidebar() {
             aria-label='Navigation'
             selectionMode='single'
             selectedKeys={selectedKey ? [selectedKey] : []}
-            className='w-full gap-0.5'
+            className='w-full gap-1'
           >
             {NAV_ITEMS.map((item) => (
               <ListBox.Item
                 key={item.id}
                 id={item.id}
                 textValue={item.label}
-                className='text-neutral-500 data-[selected=true]:bg-default data-[selected=true]:font-medium data-[selected=true]:text-neutral-800'
+                className='bg-transparent px-0 py-0 data-[hovered=true]:bg-transparent data-[selected=true]:bg-transparent data-[selected=true]:text-neutral-800'
                 onPress={() => navigate({ to: item.id })}
               >
-                <span>{item.icon}</span>
-                <Label>{item.label}</Label>
+                {({ isSelected }) => (
+                  <Surface
+                    className={cn('flex w-full items-center gap-3 rounded-2xl px-2.5 py-2', {
+                      'shadow-sm': isSelected,
+                    })}
+                    variant={isSelected ? 'default' : 'transparent'}
+                  >
+                    <span>{item.icon}</span>
+                    <Label>{item.label}</Label>
+                  </Surface>
+                )}
               </ListBox.Item>
             ))}
           </ListBox>

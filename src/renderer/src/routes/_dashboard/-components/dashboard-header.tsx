@@ -1,10 +1,10 @@
+import { Button } from '@heroui/react';
 import { sidebarOpenAtom, sidebarResizingAtom, sidebarWidthAtom } from '@renderer/atom/app';
-import { Button } from '@renderer/components/ui/button';
 import { cn } from '@renderer/lib/utils';
 import { useAtom, useAtomValue } from 'jotai';
 import { PanelLeft, PanelLeftClose } from 'lucide-react';
 
-import { DashboardHeaderStartTarget, DashboardHeaderEndTarget } from './dashboard-header-portal';
+import { DashboardHeaderEndTarget, DashboardHeaderStartTarget } from './dashboard-header-portal';
 
 export function DashboardHeader() {
   const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
@@ -19,7 +19,6 @@ export function DashboardHeader() {
         <div className='drag-region' style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <Button
             variant='ghost'
-            className='text-neutral-500'
             onClick={handleToggleSidebar}
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >

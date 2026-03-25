@@ -1,5 +1,6 @@
 import { useChat } from '@ai-sdk/react';
 import {
+  Card,
   Button as HeroButton,
   Label,
   ListBox,
@@ -198,7 +199,6 @@ function ChatWorkspace(props: {
     <div className='-mx-2.5 -mb-2.5 flex h-[calc(100vh-3.5rem)] overflow-hidden bg-background'>
       <DashboardHeaderStartContent>
         <div className='flex items-center gap-2'>
-          <MessagesSquare className='size-4 text-muted-foreground' />
           <span className='text-sm font-medium text-foreground'>{props.activeSessionTitle}</span>
         </div>
       </DashboardHeaderStartContent>
@@ -232,7 +232,7 @@ function ChatWorkspace(props: {
             <div className='py-3'>
               <ListBox
                 aria-label='Sessions'
-                className='w-full gap-2'
+                className='w-full'
                 selectedKeys={props.activeSessionId ? [props.activeSessionId] : []}
                 selectionMode='single'
               >
@@ -241,22 +241,27 @@ function ChatWorkspace(props: {
                     key={session.id}
                     id={session.id}
                     textValue={session.title}
+                    className='py-1 **:data-[slot=label]:text-foreground/40 data-[selected=true]:**:data-[slot=label]:text-foreground'
                     onPress={() => props.onSelectSession(session.id)}
                   >
                     <div className='flex w-full items-center justify-between gap-3'>
                       <Label className='min-w-0 flex-1 truncate text-sm font-medium'>
                         {session.title}
                       </Label>
-                      <button
-                        className='rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted'
+                      <HeroButton
+                        aria-label='Delete session'
+                        isIconOnly
                         onClick={(event) => {
                           event.stopPropagation();
+                        }}
+                        onPress={() => {
                           void props.onDeleteSession(session.id);
                         }}
-                        type='button'
+                        size='sm'
+                        variant='ghost'
                       >
                         <Trash2 className='size-4' />
-                      </button>
+                      </HeroButton>
                     </div>
                   </ListBox.Item>
                 ))}
@@ -335,36 +340,35 @@ function ChatWorkspace(props: {
         </div>
 
         <div className='mx-auto w-full max-w-4xl px-4 pb-2'>
-          <PromptInput
-            className='rounded-2xl border border-border/70 bg-white shadow-xs'
-            onSubmit={handleSubmit}
-          >
-            <PromptInputBody>
-              <PromptInputTextarea
-                className='pt-4'
-                disabled={props.isSessionLoading}
-                placeholder='Send a message...'
-              />
-            </PromptInputBody>
-            <PromptInputFooter>
-              <div className='ml-auto'>
-                {isStreaming ? (
-                  <PromptInputButton tooltip='Stop generating' onClick={stop} variant='ghost'>
-                    <Square size={14} />
-                  </PromptInputButton>
-                ) : (
-                  <PromptInputButton
-                    disabled={props.isSessionLoading}
-                    tooltip='Send message'
-                    type='submit'
-                    variant='ghost'
-                  >
-                    <SendHorizonal size={14} />
-                  </PromptInputButton>
-                )}
-              </div>
-            </PromptInputFooter>
-          </PromptInput>
+          <Card className='relative z-9999 bg-white p-0'>
+            <PromptInput className='rounded-2xl' onSubmit={handleSubmit}>
+              <PromptInputBody>
+                <PromptInputTextarea
+                  className='pt-4'
+                  disabled={props.isSessionLoading}
+                  placeholder='Send a message...'
+                />
+              </PromptInputBody>
+              <PromptInputFooter>
+                <div className='ml-auto'>
+                  {isStreaming ? (
+                    <PromptInputButton tooltip='Stop generating' onClick={stop} variant='tertiary'>
+                      <Square size={14} />
+                    </PromptInputButton>
+                  ) : (
+                    <PromptInputButton
+                      disabled={props.isSessionLoading}
+                      tooltip='Send message'
+                      type='submit'
+                      variant='default'
+                    >
+                      <SendHorizonal size={14} />
+                    </PromptInputButton>
+                  )}
+                </div>
+              </PromptInputFooter>
+            </PromptInput>
+          </Card>
         </div>
       </div>
     </div>
