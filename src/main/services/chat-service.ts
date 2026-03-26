@@ -82,6 +82,7 @@ export class ChatService {
     let assistantMessageId: string;
 
     if (lastMessage.role === 'user') {
+      // Fresh user turns persist a new user row and create a new assistant placeholder.
       const lastUserText = getTextFromMessage(lastMessage);
       const userSequence = await this.deps.messageRepository.getNextSequence(input.sessionId);
 
@@ -105,6 +106,7 @@ export class ChatService {
 
       assistantMessageId = assistantMessage.id;
     } else {
+      // Approval/tool continuations reuse the existing assistant row instead of duplicating history.
       const assistantMessage =
         (await this.deps.messageRepository.updateMessage(lastMessage.id, {
           parts: lastMessage.parts,
@@ -128,6 +130,8 @@ export class ChatService {
       return await createAgentUIStream({
         agent: this.deps.agent,
         uiMessages: input.messages,
+        // Pass original messages so AI SDK can continue the last assistant message in place after
+        // approvals instead of emitting a duplicate assistant turn.
         originalMessages: input.messages,
         generateMessageId: () => assistantMessageId,
         onFinish: async ({ isAborted, responseMessage }) => {

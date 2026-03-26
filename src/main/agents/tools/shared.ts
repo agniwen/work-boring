@@ -26,6 +26,8 @@ function isWithinRoot(rootPath: string, candidatePath: string) {
 }
 
 async function resolveAgainstNearestExistingParent(candidatePath: string) {
+  // When the target does not exist yet, resolve the nearest real parent so workspace checks still
+  // honor symlinks instead of trusting the raw string path.
   const segments = [basename(candidatePath)];
   let currentPath = dirname(candidatePath);
 
@@ -51,6 +53,7 @@ export async function resolveWorkspacePath(
   requestedPath: string,
   options?: { allowMissing?: boolean },
 ) {
+  // Bash and grep stay workspace-only, so they use the strict resolver.
   const resolvedPath = await resolveToolPath(workspaceRoot, requestedPath, options);
 
   if (!resolvedPath.isWithinWorkspace) {
@@ -65,6 +68,8 @@ export async function resolveToolPath(
   requestedPath: string,
   options?: { allowMissing?: boolean },
 ): Promise<ResolvedToolPath> {
+  // Read and write use the looser resolver so approval can be decided before rejecting paths that
+  // sit outside the workspace root.
   const normalizedPath = requestedPath.trim();
 
   if (!normalizedPath) {
@@ -106,6 +111,7 @@ export function toToolDisplayPath(
   absolutePath: string,
   isWithinWorkspace: boolean,
 ) {
+  // Preserve absolute paths in tool output when the file lives outside the workspace.
   if (!isWithinWorkspace) {
     return absolutePath;
   }

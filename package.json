@@ -8,6 +8,7 @@
   "scripts": {
     "lint": "oxfmt && oxlint --fix",
     "check": "oxfmt --check",
+    "skill:validate": "python3 scripts/validate-skill.py",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",

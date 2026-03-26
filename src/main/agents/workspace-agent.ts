@@ -17,6 +17,7 @@ export interface WorkspaceAgentRuntime {
 export function createWorkspaceAgentRuntime(input?: {
   workspaceRoot?: string;
 }): WorkspaceAgentRuntime {
+  // Bind prompt, tools, and model selection to a single workspace root for the whole runtime.
   const workspaceRoot = input?.workspaceRoot ?? process.cwd();
   const instructions = buildWorkspaceAgentInstructions({ workspaceRoot });
 

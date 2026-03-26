@@ -72,6 +72,21 @@ When adding product behavior:
 3. consume it from renderer with TanStack Query or explicit actions
 4. keep React components focused on UI orchestration
 
+## Agents Module Commenting
+
+When editing `src/main/agents/**`, add or update concise comments for non-obvious helper functions and workflow branches.
+
+This includes:
+
+- safety checks and blocked-command guards
+- path resolution and workspace-boundary logic
+- approval, continuation, retry, and fallback branches
+- cross-process handoff points when agent flow changes reach adjacent files
+
+If the same change touches agent workflow integration outside `src/main/agents/**` such as `src/main/services/chat-service.ts`, `src/main/orpc/router.ts`, or the chat transport/UI files, add matching flow comments there too.
+
+Do not add comments for trivial assignments or obvious JSX. Keep comments short, accurate, and updated with the code.
+
 ## Database Workflow
 
 For schema changes:

@@ -94,6 +94,8 @@ function renderMessagePart(
     const approval = 'approval' in part ? part.approval : undefined;
     const approvalContent =
       approval && onRespondToApproval ? (
+        // Keep approval actions inside the tool card so the user can review the exact tool input
+        // before letting an out-of-workspace action continue.
         <Confirmation approval={approval} state={part.state}>
           <ConfirmationRequest>
             <ConfirmationTitle>
@@ -266,6 +268,8 @@ function ChatWorkspace(props: {
     useChat<WorkspaceAgentUIMessage>({
       id: props.activeSessionId ?? 'new-chat',
       messages: props.initialMessages,
+      // Once every approval in the last assistant step has a response, resume the server-side tool
+      // loop automatically without requiring another manual submit.
       sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
       transport: {
         ...orpcChatTransport,
@@ -303,6 +307,8 @@ function ChatWorkspace(props: {
   useEffect(() => {
     const isCurrentlyStreaming = status === 'streaming' || status === 'submitted';
 
+    // Approval resumptions do not go through handleSubmit, so refresh persisted queries whenever a
+    // stream settles.
     if (wasStreamingRef.current && !isCurrentlyStreaming) {
       void queryClient.invalidateQueries();
     }

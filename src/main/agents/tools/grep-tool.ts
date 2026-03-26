@@ -20,6 +20,7 @@ function parseRipgrepMatches(stdout: string, maxResults: number) {
   const matches: GrepMatch[] = [];
   let truncated = false;
 
+  // `rg --json` emits multiple event types; only explicit match rows become tool results.
   for (const line of stdout.split('\n')) {
     if (!line.trim()) {
       continue;
@@ -92,6 +93,7 @@ async function runRipgrepSearch(input: {
   searchTarget: string;
   workspaceRoot: string;
 }) {
+  // Prefer ripgrep's JSON mode so parsing stays stable even when filenames contain colons.
   const args = ['--json', '--line-number', '--color', 'never'];
 
   if (!input.caseSensitive) {
@@ -130,6 +132,7 @@ async function runGrepFallback(input: {
   searchTarget: string;
   workspaceRoot: string;
 }) {
+  // Fall back to plain grep when ripgrep is unavailable in the runtime environment.
   const args = ['-RIn'];
 
   if (!input.caseSensitive) {

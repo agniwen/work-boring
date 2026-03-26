@@ -201,6 +201,22 @@ pnpm build:linux
 - preserve the file-based route structure
 - use the `@renderer/*` alias in renderer code
 
+### Commenting Rule For Agent Code
+
+When editing `src/main/agents/**`, add or update concise comments on helper functions and non-obvious workflow logic.
+
+Focus comments on:
+
+- safety and guardrail logic
+- path resolution and workspace constraints
+- approval and continuation flow
+- fallback behavior
+- cross-process integration points when agent execution flow extends into adjacent files
+
+Apply the same rule to related flow files such as `src/main/services/chat-service.ts`, `src/main/orpc/router.ts`, `src/renderer/src/lib/orpc.ts`, and the chat route whenever the change affects agent execution.
+
+Do not comment trivial code. Keep comments short and synchronized with the implementation.
+
 ### Avoid These Mistakes
 
 - do not import SQLite or Drizzle directly in renderer code

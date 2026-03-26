@@ -70,6 +70,7 @@ const BLOCKED_COMMAND_RULES: Array<{ pattern: RegExp; reason: string }> = [
 function assertSafeCommand(command: string) {
   const normalizedCommand = command.trim();
 
+  // Scan the entire shell snippet before execution so blocked commands cannot hide behind separators.
   for (const rule of BLOCKED_COMMAND_RULES) {
     if (rule.pattern.test(normalizedCommand)) {
       throw new Error(`Blocked bash command: ${rule.reason}`);

@@ -53,6 +53,7 @@ export function createReadTool(context: WorkspaceToolContext) {
         .describe(`Maximum characters to return. Defaults to ${DEFAULT_READ_MAX_CHARACTERS}.`),
     }),
     needsApproval: async ({ path }) => {
+      // Approval depends only on path location; missing files should still fail during execution.
       const resolvedPath = await resolveToolPath(context.workspaceRoot, path, {
         allowMissing: true,
       });
@@ -81,6 +82,7 @@ export function createReadTool(context: WorkspaceToolContext) {
 
       const allLines = content.split(/\r?\n/);
       const totalLines = getLineCount(content);
+      // Clamp the requested window so the model always receives a valid slice of the file.
       const boundedStartLine = Math.max(1, Math.min(startLine, Math.max(totalLines, 1)));
       const boundedEndLine = Math.max(
         boundedStartLine,

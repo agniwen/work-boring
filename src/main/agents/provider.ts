@@ -2,6 +2,8 @@ import { createDeepSeek } from '@ai-sdk/deepseek';
 import { streamText } from 'ai';
 
 export function getAgentEnv() {
+  // Accept both Electron-injected env vars and plain process env so local dev and packaged runs
+  // resolve model settings the same way.
   return {
     deepSeekApiKey: import.meta.env.MAIN_VITE_DEEPSEEK_API_KEY ?? process.env['DEEPSEEK_API_KEY'],
     deepSeekBaseUrl:
@@ -32,5 +34,6 @@ export function createMainLanguageModel(): Parameters<typeof streamText>[0]['mod
     baseURL: deepSeekBaseUrl?.trim() || undefined,
   });
 
+  // Build the concrete model instance lazily so startup fails with a clear credential error.
   return provider(getMainLanguageModelName());
 }

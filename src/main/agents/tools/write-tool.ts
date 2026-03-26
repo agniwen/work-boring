@@ -26,6 +26,7 @@ export function createWriteTool(context: WorkspaceToolContext) {
         ),
     }),
     needsApproval: async ({ path }) => {
+      // Approval depends only on whether the target escapes the workspace boundary.
       const resolvedPath = await resolveToolPath(context.workspaceRoot, path, {
         allowMissing: true,
       });
@@ -38,6 +39,7 @@ export function createWriteTool(context: WorkspaceToolContext) {
       });
       const { absolutePath, isWithinWorkspace } = resolvedPath;
 
+      // Parent directories are created only after approval and path resolution have succeeded.
       await mkdir(dirname(absolutePath), { recursive: true });
 
       if (mode === 'append') {
