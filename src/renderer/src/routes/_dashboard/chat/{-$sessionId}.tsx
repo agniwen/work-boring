@@ -300,7 +300,6 @@ function ChatWorkspaceRuntime(props: {
 
       <div className='flex min-w-0 flex-1 flex-col'>
         <ChatMessagesPane
-          isSessionLoading={props.isSessionLoading}
           isStreaming={isStreaming}
           messages={messages}
           onRespondToApproval={handleApprovalResponse}

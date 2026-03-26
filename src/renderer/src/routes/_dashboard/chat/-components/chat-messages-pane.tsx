@@ -11,7 +11,6 @@ import type { WorkspaceAgentUIMessage } from '../../../../../../main/agents';
 import { ChatMessagePart } from './chat-message-part';
 
 type ChatMessagesPaneProps = {
-  isSessionLoading: boolean;
   isStreaming: boolean;
   messages: WorkspaceAgentUIMessage[];
   onRespondToApproval: ((approvalId: string, approved: boolean) => void) | null;
@@ -19,7 +18,6 @@ type ChatMessagesPaneProps = {
 };
 
 export function ChatMessagesPane({
-  isSessionLoading,
   isStreaming,
   messages,
   onRespondToApproval,

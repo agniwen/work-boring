@@ -32,6 +32,7 @@ export function DashboardHeader() {
           )}
           style={{
             paddingLeft: sidebarOpen ? `${sidebarWidth - 120}px` : '32px',
+            willChange: 'padding-left',
           }}
         >
           <div className='flex w-full items-center justify-between'>

@@ -107,16 +107,19 @@ export function Sidebar() {
   return (
     <>
       <div
-        className={`absolute top-0 left-0 z-10 h-full shrink-0 border-r border-neutral-200 pt-12 ${
+        className={`absolute top-0 left-0 z-10 h-full shrink-0 transform-gpu border-r border-neutral-200 pt-12 ${
           isResizing ? '' : 'transition-transform duration-300 ease-out'
         }`}
         style={{
           width: `${sidebarWidth}px`,
           transform: sidebarOpen ? 'translateX(0)' : `translateX(-${sidebarWidth}px)`,
+          // Keep sidebar open/close on its own compositor layer to reduce full-page repainting.
+          contain: 'layout paint',
+          transformOrigin: 'left center',
           willChange: isResizing ? 'width' : 'transform',
         }}
       >
-        <div className='flex h-full flex-col overflow-y-auto px-2 py-3'>
+        <div className='flex h-full [transform:translateZ(0)] flex-col overflow-y-auto px-2 py-3'>
           <ListBox
             aria-label='Navigation'
             selectionMode='single'
@@ -155,7 +158,10 @@ export function Sidebar() {
           className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors ${
             isHovering || isResizing ? 'bg-primary' : 'bg-transparent '
           }`}
-          style={{ width: `${RESIZE_HANDLE_WIDTH}px` }}
+          style={{
+            width: `${RESIZE_HANDLE_WIDTH}px`,
+            willChange: 'background-color',
+          }}
           onMouseDown={handleMouseDown}
           onMouseEnter={() => setIsHovering(true)}
           onMouseLeave={() => setIsHovering(false)}

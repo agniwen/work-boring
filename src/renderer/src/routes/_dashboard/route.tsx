@@ -34,11 +34,19 @@ function DashboardLayout() {
             <div
               className={`flex h-full flex-col ${sidebarResizing ? '' : 'transition-[margin] duration-300 ease-out'}`}
               style={{
+                // Opening the sidebar still shifts content, but hint the browser ahead of time to
+                // smooth out the margin animation on large chat transcripts.
                 marginLeft: sidebarOpen ? `${sidebarWidth}px` : '0px',
+                willChange: sidebarResizing ? 'margin-left' : 'margin-left',
               }}
             >
               {/* 主内容 */}
-              <div className='min-h-0 flex-1 bg-background'>
+              <div
+                className='min-h-0 flex-1 bg-background'
+                style={{
+                  contain: 'paint',
+                }}
+              >
                 <div className='h-full pt-11.5'>
                   {isChatRoute ? (
                     <div className='h-full px-4'>
