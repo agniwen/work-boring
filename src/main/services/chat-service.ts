@@ -19,16 +19,8 @@ interface ChatServiceDeps {
 
 type AgentUIMessageStream = Awaited<ReturnType<typeof createAgentUIStream>>;
 
-function extractLastUserMessage(messages: WorkspaceAgentUIMessage[]) {
-  for (let i = messages.length - 1; i >= 0; i -= 1) {
-    const message = messages[i];
-
-    if (message?.role === 'user') {
-      return message;
-    }
-  }
-
-  return null;
+function getLastMessage(messages: WorkspaceAgentUIMessage[]) {
+  return messages.at(-1) ?? null;
 }
 
 function getTextFromMessage(message: WorkspaceAgentUIMessage) {
@@ -81,43 +73,67 @@ export class ChatService {
       throw new Error(`Chat session not found: ${input.sessionId}`);
     }
 
-    const lastUserMessage = extractLastUserMessage(input.messages);
+    const lastMessage = getLastMessage(input.messages);
 
-    if (!lastUserMessage) {
-      throw new Error('Missing user message to persist.');
+    if (!lastMessage || (lastMessage.role !== 'user' && lastMessage.role !== 'assistant')) {
+      throw new Error('Chat streaming requires a trailing user or assistant message.');
     }
 
-    const lastUserText = getTextFromMessage(lastUserMessage);
-    const userSequence = await this.deps.messageRepository.getNextSequence(input.sessionId);
-    await this.deps.messageRepository.createMessage({
-      sessionId: input.sessionId,
-      role: 'user',
-      parts: lastUserMessage.parts,
-      status: 'done',
-      sequence: userSequence,
-    });
+    let assistantMessageId: string;
 
-    await this.deps.sessionRepository.updateTitleFromFirstMessage(session, lastUserText);
+    if (lastMessage.role === 'user') {
+      const lastUserText = getTextFromMessage(lastMessage);
+      const userSequence = await this.deps.messageRepository.getNextSequence(input.sessionId);
+
+      await this.deps.messageRepository.createMessage({
+        sessionId: input.sessionId,
+        role: 'user',
+        parts: lastMessage.parts,
+        status: 'done',
+        sequence: userSequence,
+      });
+
+      await this.deps.sessionRepository.updateTitleFromFirstMessage(session, lastUserText);
+
+      const assistantMessage = await this.deps.messageRepository.createMessage({
+        sessionId: input.sessionId,
+        role: 'assistant',
+        parts: [],
+        status: 'streaming',
+        sequence: userSequence + 1,
+      });
+
+      assistantMessageId = assistantMessage.id;
+    } else {
+      const assistantMessage =
+        (await this.deps.messageRepository.updateMessage(lastMessage.id, {
+          parts: lastMessage.parts,
+          status: 'streaming',
+          errorText: null,
+        })) ??
+        (await this.deps.messageRepository.createMessage({
+          id: lastMessage.id,
+          sessionId: input.sessionId,
+          role: 'assistant',
+          parts: lastMessage.parts,
+          status: 'streaming',
+        }));
+
+      assistantMessageId = assistantMessage.id;
+    }
+
     await this.deps.sessionRepository.touch(input.sessionId);
-
-    const assistantMessage = await this.deps.messageRepository.createMessage({
-      sessionId: input.sessionId,
-      role: 'assistant',
-      parts: [],
-      status: 'streaming',
-      sequence: userSequence + 1,
-    });
 
     try {
       return await createAgentUIStream({
         agent: this.deps.agent,
         uiMessages: input.messages,
         originalMessages: input.messages,
-        generateMessageId: () => assistantMessage.id,
+        generateMessageId: () => assistantMessageId,
         onFinish: async ({ isAborted, responseMessage }) => {
           const status = isAborted ? 'aborted' : 'done';
 
-          await this.deps.messageRepository.updateMessage(assistantMessage.id, {
+          await this.deps.messageRepository.updateMessage(assistantMessageId, {
             parts: responseMessage.parts,
             status,
             errorText: null,
@@ -131,7 +147,7 @@ export class ChatService {
     } catch (error) {
       const errorText = error instanceof Error ? error.message : 'Unknown chat stream error';
 
-      await this.deps.messageRepository.updateMessage(assistantMessage.id, {
+      await this.deps.messageRepository.updateMessage(assistantMessageId, {
         parts: [],
         status: 'error',
         errorText,

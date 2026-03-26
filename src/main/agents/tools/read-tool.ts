@@ -7,8 +7,8 @@ import {
   DEFAULT_READ_MAX_CHARACTERS,
   DEFAULT_READ_WINDOW_LINES,
   formatNumberedLines,
-  resolveWorkspacePath,
-  toWorkspaceRelativePath,
+  resolveToolPath,
+  toToolDisplayPath,
   truncateText,
   type WorkspaceToolContext,
 } from './shared';
@@ -24,9 +24,14 @@ function getLineCount(content: string) {
 export function createReadTool(context: WorkspaceToolContext) {
   return tool({
     description:
-      'Read a UTF-8 text file from the workspace. Returns numbered lines so the agent can reason about exact locations.',
+      'Read a UTF-8 text file. Workspace paths run immediately; paths outside the workspace require user approval. Returns numbered lines so the agent can reason about exact locations.',
     inputSchema: z.object({
-      path: z.string().min(1).describe('Workspace-relative file path to read.'),
+      path: z
+        .string()
+        .min(1)
+        .describe(
+          'File path to read. Workspace-relative paths are preferred. Paths outside the workspace require approval.',
+        ),
       startLine: z
         .number()
         .int()
@@ -47,13 +52,21 @@ export function createReadTool(context: WorkspaceToolContext) {
         .optional()
         .describe(`Maximum characters to return. Defaults to ${DEFAULT_READ_MAX_CHARACTERS}.`),
     }),
+    needsApproval: async ({ path }) => {
+      const resolvedPath = await resolveToolPath(context.workspaceRoot, path, {
+        allowMissing: true,
+      });
+
+      return !resolvedPath.isWithinWorkspace;
+    },
     execute: async ({
       path,
       startLine = 1,
       endLine,
       maxCharacters = DEFAULT_READ_MAX_CHARACTERS,
     }) => {
-      const absolutePath = await resolveWorkspacePath(context.workspaceRoot, path);
+      const resolvedPath = await resolveToolPath(context.workspaceRoot, path);
+      const { absolutePath, isWithinWorkspace } = resolvedPath;
       const fileStat = await stat(absolutePath);
 
       if (!fileStat.isFile()) {
@@ -81,7 +94,7 @@ export function createReadTool(context: WorkspaceToolContext) {
       const truncatedContent = truncateText(numberedContent, maxCharacters);
 
       return {
-        path: toWorkspaceRelativePath(context.workspaceRoot, absolutePath),
+        path: toToolDisplayPath(context.workspaceRoot, absolutePath, isWithinWorkspace),
         startLine: boundedStartLine,
         endLine: boundedEndLine,
         totalLines,

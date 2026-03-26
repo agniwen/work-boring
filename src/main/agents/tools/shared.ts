@@ -13,6 +13,13 @@ export const MAX_BASH_TIMEOUT_MS = 60_000;
 export const MAX_GREP_RESULTS = 200;
 export const MAX_TOOL_OUTPUT_CHARACTERS = 12_000;
 
+export interface ResolvedToolPath {
+  absolutePath: string;
+  isWithinWorkspace: boolean;
+  realCandidatePath: string;
+  realWorkspaceRoot: string;
+}
+
 function isWithinRoot(rootPath: string, candidatePath: string) {
   const relativePath = relative(rootPath, candidatePath);
   return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath));
@@ -44,13 +51,29 @@ export async function resolveWorkspacePath(
   requestedPath: string,
   options?: { allowMissing?: boolean },
 ) {
+  const resolvedPath = await resolveToolPath(workspaceRoot, requestedPath, options);
+
+  if (!resolvedPath.isWithinWorkspace) {
+    throw new Error(`Path escapes the workspace root: ${requestedPath}`);
+  }
+
+  return resolvedPath.absolutePath;
+}
+
+export async function resolveToolPath(
+  workspaceRoot: string,
+  requestedPath: string,
+  options?: { allowMissing?: boolean },
+): Promise<ResolvedToolPath> {
   const normalizedPath = requestedPath.trim();
 
   if (!normalizedPath) {
     throw new Error('Path is required.');
   }
 
-  const absolutePath = resolve(workspaceRoot, normalizedPath);
+  const absolutePath = isAbsolute(normalizedPath)
+    ? resolve(normalizedPath)
+    : resolve(workspaceRoot, normalizedPath);
   const realWorkspaceRoot = await realpath(workspaceRoot);
 
   let realCandidatePath: string;
@@ -65,16 +88,29 @@ export async function resolveWorkspacePath(
     realCandidatePath = await resolveAgainstNearestExistingParent(absolutePath);
   }
 
-  if (!isWithinRoot(realWorkspaceRoot, realCandidatePath)) {
-    throw new Error(`Path escapes the workspace root: ${requestedPath}`);
-  }
-
-  return absolutePath;
+  return {
+    absolutePath,
+    isWithinWorkspace: isWithinRoot(realWorkspaceRoot, realCandidatePath),
+    realCandidatePath,
+    realWorkspaceRoot,
+  };
 }
 
 export function toWorkspaceRelativePath(workspaceRoot: string, absolutePath: string) {
   const relativePath = relative(workspaceRoot, absolutePath);
   return relativePath || '.';
+}
+
+export function toToolDisplayPath(
+  workspaceRoot: string,
+  absolutePath: string,
+  isWithinWorkspace: boolean,
+) {
+  if (!isWithinWorkspace) {
+    return absolutePath;
+  }
+
+  return toWorkspaceRelativePath(workspaceRoot, absolutePath);
 }
 
 export function truncateText(value: string, maxCharacters = MAX_TOOL_OUTPUT_CHARACTERS) {

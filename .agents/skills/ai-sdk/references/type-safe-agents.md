@@ -85,7 +85,7 @@ export function Chat() {
 
   return (
     <div>
-      {messages.map(message => (
+      {messages.map((message) => (
         <Message key={message.id} message={message} />
       ))}
     </div>
@@ -161,11 +161,7 @@ Then import only the type in your component:
 // components/weather-tool.tsx
 import type { WeatherToolInvocation } from '@/lib/tools/weather-tool';
 
-export function WeatherToolComponent({
-  invocation,
-}: {
-  invocation: WeatherToolInvocation;
-}) {
+export function WeatherToolComponent({ invocation }: { invocation: WeatherToolInvocation }) {
   // invocation.input and invocation.output are fully typed
   if (invocation.state === 'output-available') {
     return (

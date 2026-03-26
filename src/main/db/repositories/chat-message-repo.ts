@@ -38,6 +38,7 @@ export class ChatMessageRepository {
   }
 
   async createMessage(input: {
+    id?: string;
     sessionId: string;
     role: WorkspaceAgentUIMessage['role'];
     parts: WorkspaceAgentUIMessage['parts'];
@@ -51,7 +52,7 @@ export class ChatMessageRepository {
     const [message] = await db
       .insert(chatMessages)
       .values({
-        id: nanoid(),
+        id: input.id ?? nanoid(),
         sessionId: input.sessionId,
         role: input.role,
         partsJson: JSON.stringify(input.parts),

@@ -8,6 +8,15 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@heroui/react';
+import {
+  Confirmation,
+  ConfirmationAccepted,
+  ConfirmationAction,
+  ConfirmationActions,
+  ConfirmationRejected,
+  ConfirmationRequest,
+  ConfirmationTitle,
+} from '@renderer/components/ai-elements/confirmation';
 import { ConversationEmptyState } from '@renderer/components/ai-elements/conversation';
 import { Message, MessageContent, MessageResponse } from '@renderer/components/ai-elements/message';
 import {
@@ -36,7 +45,7 @@ import { orpc, orpcChatTransport, orpcClient } from '@renderer/lib/orpc';
 import { queryClient } from '@renderer/lib/query-client';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { isToolUIPart } from 'ai';
+import { isToolUIPart, lastAssistantMessageIsCompleteWithApprovalResponses } from 'ai';
 import { ArrowDownIcon, MessagesSquare, Plus, SendHorizonal, Square, Trash2 } from 'lucide-react';
 import { startTransition, useEffect, useRef, useState } from 'react';
 import { useStickToBottom } from 'use-stick-to-bottom';
@@ -58,6 +67,7 @@ function renderMessagePart(
   part: WorkspaceAgentUIMessage['parts'][number],
   index: number,
   isStreaming: boolean,
+  onRespondToApproval: ((approvalId: string, approved: boolean) => void) | null,
 ) {
   if (part.type === 'text') {
     return (
@@ -81,13 +91,43 @@ function renderMessagePart(
   }
 
   if (isToolUIPart(part)) {
+    const approval = 'approval' in part ? part.approval : undefined;
+    const approvalContent =
+      approval && onRespondToApproval ? (
+        <Confirmation approval={approval} state={part.state}>
+          <ConfirmationRequest>
+            <ConfirmationTitle>
+              This tool needs approval before it can access a path outside the workspace.
+            </ConfirmationTitle>
+            <ConfirmationActions>
+              <ConfirmationAction
+                variant='outline'
+                onClick={() => onRespondToApproval(approval.id, false)}
+              >
+                Deny
+              </ConfirmationAction>
+              <ConfirmationAction onClick={() => onRespondToApproval(approval.id, true)}>
+                Approve
+              </ConfirmationAction>
+            </ConfirmationActions>
+          </ConfirmationRequest>
+          <ConfirmationAccepted>
+            <ConfirmationTitle>Approval granted. Continuing execution.</ConfirmationTitle>
+          </ConfirmationAccepted>
+          <ConfirmationRejected>
+            <ConfirmationTitle>Approval denied.</ConfirmationTitle>
+          </ConfirmationRejected>
+        </Confirmation>
+      ) : null;
     const content =
       part.input !== undefined ||
+      approvalContent ||
       part.state === 'output-available' ||
       part.state === 'output-error' ||
       part.state === 'output-denied' ? (
         <ToolContent>
           {part.input !== undefined ? <ToolInput input={part.input} /> : null}
+          {approvalContent}
           {part.state === 'output-available' ||
           part.state === 'output-error' ||
           part.state === 'output-denied' ? (
@@ -221,23 +261,26 @@ function ChatWorkspace(props: {
 }) {
   const { activeSessionId, onConsumePendingDraft, pendingDraftMessage } = props;
   const pendingDraftTriggeredRef = useRef(false);
-  const { messages, status, sendMessage, stop } = useChat<WorkspaceAgentUIMessage>({
-    id: props.activeSessionId ?? 'new-chat',
-    messages: props.initialMessages,
-    transport: {
-      ...orpcChatTransport,
-      sendMessages: (options) => {
-        if (!props.activeSessionId) {
-          throw new Error('Cannot send a persisted chat message without a session id.');
-        }
+  const wasStreamingRef = useRef(false);
+  const { addToolApprovalResponse, messages, status, sendMessage, stop } =
+    useChat<WorkspaceAgentUIMessage>({
+      id: props.activeSessionId ?? 'new-chat',
+      messages: props.initialMessages,
+      sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+      transport: {
+        ...orpcChatTransport,
+        sendMessages: (options) => {
+          if (!props.activeSessionId) {
+            throw new Error('Cannot send a persisted chat message without a session id.');
+          }
 
-        return orpcChatTransport.sendMessages({
-          ...options,
-          sessionId: props.activeSessionId,
-        });
+          return orpcChatTransport.sendMessages({
+            ...options,
+            sessionId: props.activeSessionId,
+          });
+        },
       },
-    },
-  });
+    });
   const { contentRef, isAtBottom, scrollRef, scrollToBottom } = useStickToBottom({
     initial: 'smooth',
     resize: 'smooth',
@@ -252,12 +295,20 @@ function ChatWorkspace(props: {
 
     pendingDraftTriggeredRef.current = true;
 
-    void sendMessage({ text: pendingDraftMessage?.text })
-      .then(() => queryClient.invalidateQueries())
-      .finally(() => {
-        onConsumePendingDraft();
-      });
+    void sendMessage({ text: pendingDraftMessage?.text }).finally(() => {
+      onConsumePendingDraft();
+    });
   }, [activeSessionId, onConsumePendingDraft, pendingDraftMessage, sendMessage]);
+
+  useEffect(() => {
+    const isCurrentlyStreaming = status === 'streaming' || status === 'submitted';
+
+    if (wasStreamingRef.current && !isCurrentlyStreaming) {
+      void queryClient.invalidateQueries();
+    }
+
+    wasStreamingRef.current = isCurrentlyStreaming;
+  }, [status]);
 
   const handleSubmit = (message: PromptInputMessage) => {
     if (!message.text?.trim() || props.isSessionLoading) return;
@@ -267,7 +318,14 @@ function ChatWorkspace(props: {
       return;
     }
 
-    void sendMessage({ text: message.text }).then(() => queryClient.invalidateQueries());
+    void sendMessage({ text: message.text });
+  };
+
+  const handleApprovalResponse = (approvalId: string, approved: boolean) => {
+    void addToolApprovalResponse({
+      approved,
+      id: approvalId,
+    });
   };
 
   return (
@@ -381,7 +439,12 @@ function ChatWorkspace(props: {
                     <Message from={message.role}>
                       <MessageContent>
                         {message.parts.map((part, i) =>
-                          renderMessagePart(part, i, isStreaming && i === message.parts.length - 1),
+                          renderMessagePart(
+                            part,
+                            i,
+                            isStreaming && i === message.parts.length - 1,
+                            handleApprovalResponse,
+                          ),
                         )}
                       </MessageContent>
                     </Message>
