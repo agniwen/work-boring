@@ -15,10 +15,10 @@ let orpcHandler: RPCHandler<any> | null = null;
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    minWidth: 900,
-    minHeight: 670,
+    width: 1080,
+    height: 720,
+    minWidth: 1080,
+    minHeight: 720,
     show: false,
     autoHideMenuBar: true,
     transparent: true, // 启用窗口透明

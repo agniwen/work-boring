@@ -67,11 +67,18 @@ export const ChatSessionList = memo(function ChatSessionList({
               onPress={() => onSelectSession(session.id)}
             >
               <div className='flex w-full min-w-0 items-center justify-between gap-3 overflow-hidden'>
-                <div className='line-clamp-1 min-w-0 flex-1 overflow-hidden'>
-                  <Label className='line block max-w-full truncate overflow-hidden text-sm font-medium whitespace-nowrap'>
-                    {session.title}
-                  </Label>
-                </div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className='min-w-0 flex-1 overflow-hidden'>
+                      <Label className='line block max-w-full truncate overflow-hidden text-sm font-medium whitespace-nowrap'>
+                        {session.title}
+                      </Label>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent placement='top start'>
+                    <p className='max-w-80 break-words'>{session.title}</p>
+                  </TooltipContent>
+                </Tooltip>
                 <button
                   className='shrink-0 opacity-20 hover:opacity-100'
                   onClick={(event) => {

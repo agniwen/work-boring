@@ -119,7 +119,7 @@ export function Sidebar() {
           willChange: isResizing ? 'width' : 'transform',
         }}
       >
-        <div className='flex h-full [transform:translateZ(0)] flex-col overflow-y-auto px-2 py-3'>
+        <div className='flex h-full transform-[translateZ(0)] flex-col overflow-y-auto px-2 py-3'>
           <ListBox
             aria-label='Navigation'
             selectionMode='single'
@@ -137,7 +137,7 @@ export function Sidebar() {
                 {({ isSelected }) => (
                   <Surface
                     className={cn('flex w-full items-center gap-3 rounded-2xl px-2.5 py-2', {
-                      'shadow-sm': isSelected,
+                      'shadow-xs': isSelected,
                     })}
                     variant={isSelected ? 'default' : 'transparent'}
                   >
