@@ -10,7 +10,7 @@ import { cn } from '@renderer/lib/utils';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
 import { Projector, Layers, MessagesSquare } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { useHotkeys } from 'react-hotkeys-hook';
 
 import { SidebarMiddleTarget } from './sidebar-portal';
@@ -39,7 +39,6 @@ export function Sidebar() {
   const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
   const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
   const [isResizing, setIsResizing] = useAtom(sidebarResizingAtom);
-  const [isHovering, setIsHovering] = useState(false);
   const sidebarWidthRef = useRef(sidebarWidth);
   const routerState = useRouterState();
   const navigate = useNavigate();
@@ -107,7 +106,7 @@ export function Sidebar() {
   return (
     <>
       <div
-        className={`absolute top-0 left-0 z-10 h-full shrink-0 transform-gpu border-r border-neutral-200 pt-12 ${
+        className={`absolute top-0 left-0 z-10 h-full shrink-0 transform-gpu border-r border-border/80 bg-border/10 ${
           isResizing ? '' : 'transition-transform duration-300 ease-out'
         }`}
         style={{
@@ -119,6 +118,7 @@ export function Sidebar() {
           willChange: isResizing ? 'width' : 'transform',
         }}
       >
+        <div className='h-11' />
         <div className='flex h-full transform-[translateZ(0)] flex-col overflow-y-auto px-2 py-3'>
           <ListBox
             aria-label='Navigation'
@@ -155,16 +155,12 @@ export function Sidebar() {
         </div>
 
         <button
-          className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors ${
-            isHovering || isResizing ? 'bg-primary' : 'bg-transparent '
-          }`}
+          className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors`}
           style={{
             width: `${RESIZE_HANDLE_WIDTH}px`,
             willChange: 'background-color',
           }}
           onMouseDown={handleMouseDown}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
         />
       </div>
     </>

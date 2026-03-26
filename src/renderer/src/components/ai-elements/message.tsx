@@ -275,7 +275,7 @@ export const MessageResponse = memo(
     <Streamdown
       className={cn(
         'pointer-events-auto size-full select-text [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
-        '[&_code]:rounded-md [&_code]:bg-muted/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em] [&_code]:text-foreground',
+        '[&_code]:rounded-md [&_code]:border [&_code]:bg-muted/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em] [&_code]:text-foreground',
         '[&_pre_code]:rounded-none [&_pre_code]:bg-transparent [&_pre_code]:px-0 [&_pre_code]:py-0',
         className,
       )}

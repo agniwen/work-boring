@@ -42,7 +42,7 @@ function DashboardLayout() {
             >
               {/* 主内容 */}
               <div
-                className='min-h-0 flex-1 bg-background'
+                className='min-h-0 flex-1'
                 style={{
                   contain: 'paint',
                 }}

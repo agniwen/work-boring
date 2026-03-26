@@ -4,6 +4,7 @@ import { createWorkspaceAgentRuntime, type WorkspaceAgentUIMessage } from '../ag
 import { ChatMessageRepository } from '../db/repositories/chat-message-repo';
 import { ChatSessionRepository } from '../db/repositories/chat-session-repo';
 import { ChatService } from '../services/chat-service';
+import { SkillService } from '../services/skill-service';
 
 const emptyInput = type<void>();
 const createChatSessionInput = type<{ title?: string } | void>();
@@ -39,6 +40,9 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
     messageRepository,
     sessionRepository,
   });
+  const skillService = new SkillService({
+    workspaceRoot: workspaceAgentRuntime.workspaceRoot,
+  });
 
   return {
     chat: {
@@ -68,6 +72,9 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
       rename: os
         .input(renameChatSessionInput)
         .handler(async ({ input }) => chatService.renameSession(input.sessionId, input.title)),
+    },
+    skills: {
+      list: os.input(emptyInput).handler(async () => skillService.listInstalledSkills()),
     },
     system: {
       info: os.input(emptyInput).handler(async () => deps.getSystemInfo()),

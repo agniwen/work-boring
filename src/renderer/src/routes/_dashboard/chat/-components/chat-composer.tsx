@@ -8,6 +8,7 @@ import {
   type PromptInputMessage,
 } from '@renderer/components/ai-elements/prompt-input';
 import { SendHorizonal, Square } from 'lucide-react';
+import { useRef } from 'react';
 
 type ChatComposerProps = {
   isSessionLoading: boolean;
@@ -22,6 +23,12 @@ export function ChatComposer({
   onStop,
   onSubmit,
 }: ChatComposerProps) {
+  const inputRef = useRef<React.ComponentRef<typeof PromptInputTextarea>>(null);
+
+  function handleFocus() {
+    inputRef.current?.focus();
+  }
+
   return (
     <div className='mx-auto w-full max-w-4xl px-4 pb-2'>
       <Card className='relative z-9999 bg-white p-0'>
@@ -29,18 +36,25 @@ export function ChatComposer({
           <PromptInputBody>
             <PromptInputTextarea
               className='pt-4'
+              ref={inputRef}
               disabled={isSessionLoading}
               placeholder='Send a message...'
             />
           </PromptInputBody>
-          <PromptInputFooter>
+          <PromptInputFooter onClick={handleFocus}>
             <div className='ml-auto'>
               {isStreaming ? (
-                <PromptInputButton tooltip='Stop generating' onClick={onStop} variant='tertiary'>
+                <PromptInputButton
+                  className='cursor-default'
+                  tooltip='Stop generating'
+                  onClick={onStop}
+                  variant='tertiary'
+                >
                   <Square size={14} />
                 </PromptInputButton>
               ) : (
                 <PromptInputButton
+                  className='cursor-default'
                   disabled={isSessionLoading}
                   tooltip='Send message'
                   type='submit'

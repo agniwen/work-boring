@@ -14,11 +14,12 @@ export function DashboardHeader() {
     setSidebarOpen(!sidebarOpen);
   }
   return (
-    <div className='drag-region fixed top-0 left-0 z-20 h-11.5 w-full'>
-      <div className='flex items-center pl-24'>
+    <div className='drag-region fixed top-0 left-0 z-20 h-11 w-full'>
+      <div className='flex items-center border-b border-border/80 px-4 pl-24'>
         <div className='drag-region' style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
           <Button
             variant='ghost'
+            className='cursor-default'
             onClick={handleToggleSidebar}
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           >
@@ -27,7 +28,7 @@ export function DashboardHeader() {
         </div>
         <div
           className={cn(
-            'dashboard-layout-header flex h-11.5 w-full flex-1 items-center px-4',
+            'dashboard-layout-header flex h-11 w-full flex-1 items-center',
             !sidebarResizing && 'transition-[padding]',
           )}
           style={{
