@@ -182,7 +182,7 @@ export const TerminalContent = ({ className, children, ...props }: TerminalConte
       {...props}
     >
       {children ?? (
-        <pre className='break-words whitespace-pre-wrap'>
+        <pre className='wrap-break-word whitespace-pre-wrap'>
           <Ansi>{output}</Ansi>
           {isStreaming && (
             <span className='ml-0.5 inline-block h-4 w-2 animate-pulse bg-zinc-100' />

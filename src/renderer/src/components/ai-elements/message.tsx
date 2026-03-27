@@ -34,7 +34,7 @@ export type MessageContentProps = HTMLAttributes<HTMLDivElement>;
 export const MessageContent = ({ children, className, ...props }: MessageContentProps) => (
   <div
     className={cn(
-      'is-user:dark pointer-events-auto flex max-w-full min-w-0 flex-col gap-2 overflow-hidden text-sm select-text',
+      'is-user:dark pointer-events-auto flex max-w-full min-w-0 flex-col gap-2 overflow-hidden text-sm leading-6 select-text',
       'group-[.is-user]:ml-auto group-[.is-user]:rounded-2xl group-[.is-user]:bg-surface-tertiary group-[.is-user]:px-4 group-[.is-user]:py-3 group-[.is-user]:text-foreground',
       'group-[.is-assistant]:text-foreground',
       className,
@@ -274,14 +274,14 @@ export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
     <Streamdown
       className={cn(
-        'pointer-events-auto size-full select-text [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
-        '[&_[data-streamdown=code-block]]:w-full [&_[data-streamdown=code-block]]:max-w-full',
-        '@min-[1020px]/chat-workspace:[&_[data-streamdown=code-block]]:w-full',
-        '@min-[1020px]/chat-workspace:[&_[data-streamdown=code-block]]:max-w-[960px]',
-        '[&_[data-streamdown=code-block-body]]:overflow-x-auto [&_[data-streamdown=code-block-body]]:overflow-y-hidden',
+        'pointer-events-auto size-full leading-6 select-text [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+        '**:data-[streamdown=code-block]:w-full **:data-[streamdown=code-block]:max-w-full',
+        '@min-[1020px]/chat-workspace:**:data-[streamdown=code-block]:w-full',
+        '@min-[1020px]/chat-workspace:**:data-[streamdown=code-block]:max-w-240',
+        '**:data-[streamdown=code-block-body]:overflow-x-auto **:data-[streamdown=code-block-body]:overflow-y-hidden',
         '[&_[data-streamdown=code-block-body]>pre]:m-0 [&_[data-streamdown=code-block-body]>pre]:w-max [&_[data-streamdown=code-block-body]>pre]:min-w-full',
         '[&_[data-streamdown=code-block-body]>pre>code]:block [&_[data-streamdown=code-block-body]>pre>code]:min-w-full',
-        '[&_code]:rounded-md [&_code]:border [&_code]:bg-muted/8 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em] [&_code]:text-foreground',
+        '[&_code]:rounded-md [&_code]:border [&_code]:border-border/60 [&_code]:bg-muted/2 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.92em] [&_code]:text-foreground',
         '[&_pre_code]:rounded-none [&_pre_code]:bg-transparent [&_pre_code]:px-0 [&_pre_code]:py-0',
         className,
       )}

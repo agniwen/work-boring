@@ -189,7 +189,7 @@ export const OpenIn = ({ query, ...props }: OpenInProps) => {
 export type OpenInContentProps = ComponentProps<typeof DropdownMenuContent>;
 
 export const OpenInContent = ({ className, ...props }: OpenInContentProps) => (
-  <DropdownMenuContent align='start' className={cn('w-[240px]', className)} {...props} />
+  <DropdownMenuContent align='start' className={cn('w-60', className)} {...props} />
 );
 
 export type OpenInItemProps = ComponentProps<typeof DropdownMenuItem>;

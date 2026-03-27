@@ -37,6 +37,12 @@ Treat this as the base layer for future agent memory and execution state, not as
 - routes are file-based under `src/renderer/src/routes/`
 - do not edit `src/renderer/src/routeTree.gen.ts` manually
 
+### UI Components
+
+- when adding or replacing renderer UI components, prefer HeroUI first
+- avoid introducing new shadcn/ui primitives when an equivalent HeroUI component already fits the use case
+- keep existing shadcn/ui usage only when there is no practical HeroUI replacement or the surrounding code already depends on that primitive pattern
+
 ## Important Files
 
 - `src/main/index.ts`

@@ -2,44 +2,28 @@
 
 import { Surface } from '@heroui/react';
 import { Badge } from '@renderer/components/ui/badge';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@renderer/components/ui/collapsible';
 import { cn } from '@renderer/lib/utils';
 import type { DynamicToolUIPart, ToolUIPart } from 'ai';
-import {
-  CheckCircleIcon,
-  ChevronDownIcon,
-  CircleIcon,
-  ClockIcon,
-  WrenchIcon,
-  XCircleIcon,
-} from 'lucide-react';
+import { CheckCircleIcon, CircleIcon, ClockIcon, WrenchIcon, XCircleIcon } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { isValidElement } from 'react';
 
 import { CodeBlock } from './code-block';
 
-export type ToolProps = ComponentProps<typeof Collapsible>;
-
-export const Tool = ({ children, className, ...props }: ToolProps) => (
-  <Collapsible className='group not-prose mb-4 w-full' {...props}>
-    <Surface
-      className={cn('w-full overflow-hidden rounded-2xl border border-muted/20', className)}
-      variant='default'
-    >
-      {children}
-    </Surface>
-  </Collapsible>
-);
-
 export type ToolPart = ToolUIPart | DynamicToolUIPart;
 
+export type ToolProps = ComponentProps<'div'>;
+
+export const Tool = ({ children, className, ...props }: ToolProps) => (
+  <div className={cn('not-prose mb-2.5 w-full rounded-lg bg-transparent', className)} {...props}>
+    {children}
+  </div>
+);
+
 export type ToolHeaderProps = {
-  title?: string;
+  actions?: ReactNode;
   className?: string;
+  title?: string;
 } & (
   | { type: ToolUIPart['type']; state: ToolUIPart['state']; toolName?: never }
   | {
@@ -70,13 +54,17 @@ const statusIcons: Record<ToolPart['state'], ReactNode> = {
 };
 
 export const getStatusBadge = (status: ToolPart['state']) => (
-  <Badge className='gap-1.5 rounded-full text-xs' variant='secondary'>
+  <Badge
+    className='gap-1 rounded-full border-transparent bg-transparent px-0 py-0 text-[11px] font-normal text-muted-foreground shadow-none'
+    variant='secondary'
+  >
     {statusIcons[status]}
     {statusLabels[status]}
   </Badge>
 );
 
 export const ToolHeader = ({
+  actions,
   className,
   title,
   type,
@@ -87,40 +75,31 @@ export const ToolHeader = ({
   const derivedName = type === 'dynamic-tool' ? toolName : type.split('-').slice(1).join('-');
 
   return (
-    <CollapsibleTrigger
-      className={cn(
-        'flex w-full items-center justify-between gap-4 bg-surface-tertiary/70 px-3 py-3 text-left',
-        'data-[state=closed]:rounded-[calc(var(--radius-2xl)-1px)] data-[state=open]:rounded-t-[calc(var(--radius-2xl)-1px)]',
-        'focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:outline-none focus-visible:ring-inset',
-        className,
-      )}
+    <div
+      className={cn('flex items-center justify-between gap-4 px-1.5 py-1.5 text-left', className)}
       {...props}
     >
-      <div className='flex items-center gap-2'>
+      <div className='flex min-w-0 items-center gap-2'>
         <Surface
-          className='flex size-7 items-center justify-center rounded-lg border border-border/60 text-muted-foreground'
+          className='flex size-5 shrink-0 items-center justify-center rounded-md bg-transparent text-muted-foreground shadow-none'
           variant='default'
         >
-          <WrenchIcon className='size-4' />
+          <WrenchIcon className='size-3.5' />
         </Surface>
-        <span className='text-sm font-medium'>{title ?? derivedName}</span>
+        <span className='truncate text-sm font-medium text-foreground/90'>
+          {title ?? derivedName}
+        </span>
         {getStatusBadge(state)}
       </div>
-      <ChevronDownIcon className='size-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180' />
-    </CollapsibleTrigger>
+      {actions ? <div className='flex shrink-0 items-center gap-2'>{actions}</div> : null}
+    </div>
   );
 };
 
-export type ToolContentProps = ComponentProps<typeof CollapsibleContent>;
+export type ToolContentProps = ComponentProps<'div'>;
 
 export const ToolContent = ({ className, ...props }: ToolContentProps) => (
-  <CollapsibleContent
-    className={cn(
-      'space-y-4 rounded-b-[calc(var(--radius-2xl)-1px)] border-t border-border/60 bg-surface-secondary/60 p-2.5 text-popover-foreground outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:animate-in data-[state=open]:slide-in-from-top-2',
-      className,
-    )}
-    {...props}
-  />
+  <div className={cn('space-y-2 px-1.5 pb-1.5', className)} {...props} />
 );
 
 export type ToolInputProps = ComponentProps<'div'> & {
@@ -128,12 +107,16 @@ export type ToolInputProps = ComponentProps<'div'> & {
 };
 
 export const ToolInput = ({ className, input, ...props }: ToolInputProps) => (
-  <div className={cn('space-y-2 overflow-hidden', className)} {...props}>
+  <div className={cn('max-w-full min-w-0 space-y-2 overflow-hidden', className)} {...props}>
     <h4 className='text-xs font-medium tracking-wide text-muted-foreground uppercase'>
       Parameters
     </h4>
-    <Surface variant='default' className='rounded-2xl'>
-      <CodeBlock className='rounded-2xl' code={JSON.stringify(input, null, 2)} language='json' />
+    <Surface className='max-w-full min-w-0 overflow-hidden rounded-2xl' variant='default'>
+      <CodeBlock
+        className='w-full max-w-full min-w-0 rounded-2xl'
+        code={JSON.stringify(input, null, 2)}
+        language='json'
+      />
     </Surface>
   </div>
 );
@@ -148,14 +131,20 @@ export const ToolOutput = ({ className, output, errorText, ...props }: ToolOutpu
     return null;
   }
 
-  let Output = <div>{output as ReactNode}</div>;
+  let renderedOutput = <div>{output as ReactNode}</div>;
 
   if (typeof output === 'object' && !isValidElement(output)) {
-    Output = (
-      <CodeBlock className='rounded-2xl' code={JSON.stringify(output, null, 2)} language='json' />
+    renderedOutput = (
+      <CodeBlock
+        className='w-full max-w-full min-w-0 rounded-2xl'
+        code={JSON.stringify(output, null, 2)}
+        language='json'
+      />
     );
   } else if (typeof output === 'string') {
-    Output = <CodeBlock className='rounded-2xl' code={output} language='json' />;
+    renderedOutput = (
+      <CodeBlock className='w-full max-w-full min-w-0 rounded-2xl' code={output} language='json' />
+    );
   }
 
   return (
@@ -165,13 +154,15 @@ export const ToolOutput = ({ className, output, errorText, ...props }: ToolOutpu
       </h4>
       <Surface
         className={cn(
-          'rounded-2xl text-xs [&_table]:w-full',
-          errorText ? 'bg-destructive/10 px-2 py-1 text-destructive' : 'text-foreground',
+          'max-w-full min-w-0 overflow-hidden rounded-xl text-xs shadow-none [&_table]:w-full',
+          errorText
+            ? 'bg-destructive/8 px-2 py-1.5 text-destructive'
+            : 'bg-muted/15 text-foreground',
         )}
         variant='default'
       >
         {errorText && <div>{errorText}</div>}
-        {Output}
+        {renderedOutput}
       </Surface>
     </div>
   );

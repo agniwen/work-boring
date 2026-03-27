@@ -319,7 +319,7 @@ export const CodeBlockContainer = ({
 }: HTMLAttributes<HTMLDivElement> & { language: string }) => (
   <div
     className={cn(
-      'group relative w-full max-w-full overflow-hidden rounded-md border bg-background text-foreground @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-[960px]',
+      'group relative w-full max-w-full min-w-0 overflow-hidden rounded-md border bg-background text-foreground @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-240',
       className,
     )}
     data-language={language}
