@@ -35,6 +35,10 @@ function formatSummaryValue(value: unknown) {
 
 type ToolSummaryRenderer = (part: ToolPart) => ReactNode | null;
 
+function quoteShellValue(value: string) {
+  return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
 const renderBashSummary: ToolSummaryRenderer = (part) => {
   const command = getObjectValue(part.input, 'command');
   const cwd = getObjectValue(part.input, 'cwd');
@@ -110,6 +114,26 @@ const renderGrepSummary: ToolSummaryRenderer = (part) => {
     return null;
   }
 
+  const commandParts = ['rg', '--line-number'];
+
+  if (caseSensitive === false) {
+    commandParts.push('--ignore-case');
+  }
+
+  if (literal === true) {
+    commandParts.push('--fixed-strings');
+  }
+
+  if (typeof glob === 'string') {
+    commandParts.push('-g', quoteShellValue(glob));
+  }
+
+  commandParts.push(quoteShellValue(pattern));
+
+  if (typeof path === 'string') {
+    commandParts.push(quoteShellValue(path));
+  }
+
   return (
     <div className='space-y-1.5 rounded-md bg-muted/3 px-2.5 py-2'>
       <div className='flex flex-wrap items-center gap-1.5 text-[11px] leading-4.5 text-muted-foreground/80'>
@@ -124,7 +148,7 @@ const renderGrepSummary: ToolSummaryRenderer = (part) => {
         ) : null}
       </div>
       <pre className='overflow-x-auto font-mono text-xs leading-4.5 whitespace-pre-wrap text-foreground/88'>
-        {pattern}
+        {commandParts.join(' ')}
       </pre>
     </div>
   );

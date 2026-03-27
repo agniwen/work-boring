@@ -180,7 +180,7 @@ function ChatWorkspaceLoading(props: {
 
       <div className='@container/chat-workspace flex min-w-0 flex-1 flex-col'>
         <div className='relative min-h-0 flex-1'>
-          <div className='mx-auto flex min-h-full w-[720px] max-w-full flex-col px-4 py-6 sm:px-6 @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-[960px]'></div>
+          <div className='mx-auto flex min-h-full w-[720px] max-w-full flex-col px-4 py-6 transition-[width,max-width] duration-200 ease-out motion-reduce:transition-none sm:px-6 @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-[960px]'></div>
         </div>
 
         <ChatComposer
