@@ -1,6 +1,5 @@
 import { sidebarOpenAtom, sidebarResizingAtom, sidebarWidthAtom } from '@renderer/atom/app';
-import { ScrollArea } from '@renderer/components/ui/scroll-area';
-import { createFileRoute, Outlet, useRouterState } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
 
 import { DashboardHeader } from './-components/dashboard-header';
@@ -19,10 +18,6 @@ function DashboardLayout() {
   const [sidebarOpen] = useAtom(sidebarOpenAtom);
   const [sidebarWidth] = useAtom(sidebarWidthAtom);
   const [sidebarResizing] = useAtom(sidebarResizingAtom);
-  const pathname = useRouterState({
-    select: (state) => state.location.pathname,
-  });
-  const isChatRoute = pathname === '/chat' || pathname.startsWith('/chat/');
 
   return (
     <DashboardHeaderStartProvider>
@@ -48,15 +43,9 @@ function DashboardLayout() {
                 }}
               >
                 <div className='h-full pt-11.5'>
-                  {isChatRoute ? (
-                    <div className='h-full px-4'>
-                      <Outlet />
-                    </div>
-                  ) : (
-                    <ScrollArea className='h-[calc(100vh-46px)] px-4'>
-                      <Outlet />
-                    </ScrollArea>
-                  )}
+                  <div className='h-full px-4'>
+                    <Outlet />
+                  </div>
                 </div>
               </div>
             </div>

@@ -30,7 +30,7 @@ export function ChatComposer({
   }
 
   return (
-    <div className='mx-auto w-[720px] max-w-full px-4 pb-2 @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-[960px]'>
+    <div className='mx-auto w-full max-w-4xl px-4 pb-4'>
       <Card className='relative z-9999 bg-white p-0'>
         <PromptInput className='rounded-2xl' onSubmit={onSubmit}>
           <PromptInputBody>
