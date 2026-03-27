@@ -22,7 +22,7 @@ export function ChatMessagesPane({
   onRespondToApproval,
 }: ChatMessagesPaneProps) {
   return (
-    <Conversation className='min-h-0'>
+    <Conversation className='min-h-0' initial='instant' resize='smooth'>
       <ConversationContent className='mx-auto w-full max-w-4xl'>
         {messages.length === 0 ? (
           <ConversationEmptyState

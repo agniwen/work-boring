@@ -189,7 +189,7 @@
   * {
     @apply border-border outline-ring/50;
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--scrollbar) 82%, transparent) transparent;
+    scrollbar-color: color-mix(in oklab, var(--scrollbar) 42%, transparent) transparent;
   }
 
   *::-webkit-scrollbar {

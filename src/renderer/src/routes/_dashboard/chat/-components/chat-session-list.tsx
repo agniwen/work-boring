@@ -2,12 +2,12 @@ import {
   Modal,
   Button as HeroButton,
   Label,
-  ListBox,
   Tooltip,
   TooltipContent,
   TooltipTrigger,
   useOverlayState,
 } from '@heroui/react';
+import { Link } from '@tanstack/react-router';
 import { Plus, Trash2 } from 'lucide-react';
 import { memo, useState } from 'react';
 
@@ -15,7 +15,6 @@ type ChatSessionListProps = {
   activeSessionId: string | null;
   onCreateSession: () => void;
   onDeleteSession: (sessionId: string) => Promise<void>;
-  onSelectSession: (sessionId: string) => void;
   sessions?: Array<{ id: string; title: string }>;
   sidebarPending: boolean;
 };
@@ -24,7 +23,6 @@ export const ChatSessionList = memo(function ChatSessionList({
   activeSessionId,
   onCreateSession,
   onDeleteSession,
-  onSelectSession,
   sessions,
   sidebarPending,
 }: ChatSessionListProps) {
@@ -72,7 +70,7 @@ export const ChatSessionList = memo(function ChatSessionList({
 
   return (
     <div className='flex h-full min-h-0 flex-col'>
-      <div className='border-b border-border/70 px-3 py-3'>
+      <div className='border-b border-border/70 px-3 pb-3'>
         <div className='flex items-center justify-between gap-2'>
           <div>
             <p className='text-sm font-medium'>Sessions</p>
@@ -95,47 +93,48 @@ export const ChatSessionList = memo(function ChatSessionList({
           </Tooltip>
         </div>
       </div>
-      <div className='w-full py-3'>
-        <ListBox
-          aria-label='Sessions'
-          className='w-full'
-          selectedKeys={activeSessionId ? [activeSessionId] : []}
-          selectionMode='single'
-        >
+      <div className='h-[calc(100vh-246px)] w-full overflow-auto py-3'>
+        <ul aria-label='Sessions' className='w-full p-1' key='session-list'>
           {sessions?.map((session) => (
-            <ListBox.Item
+            <li
               key={session.id}
               id={session.id}
-              textValue={session.title}
-              className='w-full min-w-0 cursor-default py-0 hover:bg-white hover:ring hover:ring-border/40 **:data-[slot=label]:text-foreground/40 data-[selected=true]:**:data-[slot=label]:text-foreground'
-              onPress={() => onSelectSession(session.id)}
+              data-selected={activeSessionId === session.id}
+              className={
+                'w-full min-w-0 rounded-xl px-2 hover:bg-white hover:ring hover:ring-border/40 **:data-[slot=label]:text-foreground/40 data-[selected=true]:**:data-[slot=label]:text-foreground'
+              }
             >
-              <div className='flex w-full min-w-0 items-center justify-between gap-3 overflow-hidden'>
-                <Tooltip>
-                  <TooltipTrigger className='truncate'>
-                    <Label className='line block max-w-full truncate overflow-hidden text-sm font-medium whitespace-nowrap'>
-                      {session.title}
-                    </Label>
-                  </TooltipTrigger>
-                  <TooltipContent placement='top start'>
-                    <p className='max-w-80 wrap-break-word'>{session.title}</p>
-                  </TooltipContent>
-                </Tooltip>
+              <div className='group flex w-full min-w-0 items-center justify-between gap-3 overflow-hidden'>
+                <Link
+                  className='min-w-0 flex-1 cursor-default rounded-xl py-1 outline-none'
+                  params={{ sessionId: session.id }}
+                  to='/chat/{-$sessionId}'
+                >
+                  <Tooltip>
+                    <TooltipTrigger className='truncate'>
+                      <Label className='line block w-full truncate overflow-hidden text-sm font-normal whitespace-nowrap'>
+                        {session.title}
+                      </Label>
+                    </TooltipTrigger>
+                    <TooltipContent placement='top start'>
+                      <p className='max-w-80 wrap-break-word'>{session.title}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </Link>
                 <button
                   aria-label={`Delete ${session.title}`}
-                  className='shrink-0 opacity-20 hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-20'
+                  className='shrink-0 opacity-0 group-hover:opacity-40 hover:opacity-100 disabled:cursor-not-allowed disabled:opacity-20'
                   disabled={deletingSessionId === session.id}
-                  onClick={(event) => {
-                    event.stopPropagation();
+                  onClick={() => {
                     handleDeleteRequest(session);
                   }}
                 >
                   <Trash2 className='size-3.5' />
                 </button>
               </div>
-            </ListBox.Item>
+            </li>
           ))}
-        </ListBox>
+        </ul>
         {sidebarPending ? (
           <div className='rounded-xl border border-dashed border-border/70 px-3 py-4 text-sm text-muted-foreground'>
             Loading sessions...

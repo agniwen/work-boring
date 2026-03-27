@@ -119,12 +119,12 @@ export function Sidebar() {
         }}
       >
         <div className='h-11' />
-        <div className='flex h-full transform-[translateZ(0)] flex-col overflow-y-auto px-2 py-3'>
+        <div className='overflow-y-aut flex h-[calc(100vh-44px)] transform-[translateZ(0)] flex-col'>
           <ListBox
             aria-label='Navigation'
             selectionMode='single'
             selectedKeys={selectedKey ? [selectedKey] : []}
-            className='w-full gap-1'
+            className='w-full gap-1 px-2 py-3'
           >
             {NAV_ITEMS.map((item) => (
               <ListBox.Item

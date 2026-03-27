@@ -64,14 +64,6 @@ function Chat() {
           navigateToNewChat();
         }
       }}
-      onSelectSession={(nextSessionId) => {
-        startTransition(() => {
-          void navigate({
-            params: { sessionId: nextSessionId } as { sessionId?: string },
-            to: '/chat/{-$sessionId}',
-          });
-        });
-      }}
       pendingDraftMessage={pendingDraftSessionId === sessionId ? pendingDraftMessage : null}
     />
   );
@@ -83,7 +75,6 @@ function ChatWorkspace(props: {
   onCreateSession: () => void;
   onCreateSessionFromDraft: (message: PromptInputMessage) => Promise<void>;
   onDeleteSession: (sessionId: string) => Promise<void>;
-  onSelectSession: (sessionId: string) => void;
   pendingDraftMessage: PromptInputMessage | null;
 }) {
   const navigate = Route.useNavigate();
@@ -117,45 +108,47 @@ function ChatWorkspace(props: {
 
   if (props.activeSessionId && !messagesQuery.isSuccess) {
     return (
-      <ChatWorkspaceLoading
+      <ChatWorkspaceLayout
         activeSessionId={props.activeSessionId}
         activeSessionTitle={activeSession?.title ?? 'New Chat'}
-        isSessionLoading={messagesQuery.isPending}
         onCreateSession={props.onCreateSession}
         onDeleteSession={props.onDeleteSession}
-        onSelectSession={props.onSelectSession}
         sessions={sessions}
         sidebarPending={sessionListQuery.isPending}
-      />
+      >
+        <ChatWorkspaceLoadingBody isSessionLoading={messagesQuery.isPending} />
+      </ChatWorkspaceLayout>
     );
   }
 
   return (
-    <ChatWorkspaceRuntime
-      key={props.activeSessionId ?? 'new-chat'}
+    <ChatWorkspaceLayout
       activeSessionId={props.activeSessionId}
       activeSessionTitle={activeSession?.title ?? 'New Chat'}
-      initialMessages={messagesQuery.data ?? []}
-      isSessionLoading={!!props.activeSessionId && messagesQuery.isPending}
-      onConsumePendingDraft={props.onConsumePendingDraft}
-      onCreateSession={props.onCreateSession}
-      onCreateSessionFromDraft={props.onCreateSessionFromDraft}
       onDeleteSession={props.onDeleteSession}
-      onSelectSession={props.onSelectSession}
-      pendingDraftMessage={props.pendingDraftMessage}
+      onCreateSession={props.onCreateSession}
       sessions={sessions}
       sidebarPending={sessionListQuery.isPending}
-    />
+    >
+      <ChatWorkspaceRuntime
+        key={props.activeSessionId ?? 'new-chat'}
+        activeSessionId={props.activeSessionId}
+        initialMessages={messagesQuery.data ?? []}
+        isSessionLoading={!!props.activeSessionId && messagesQuery.isPending}
+        onConsumePendingDraft={props.onConsumePendingDraft}
+        onCreateSessionFromDraft={props.onCreateSessionFromDraft}
+        pendingDraftMessage={props.pendingDraftMessage}
+      />
+    </ChatWorkspaceLayout>
   );
 }
 
-function ChatWorkspaceLoading(props: {
+function ChatWorkspaceLayout(props: {
   activeSessionId: string | null;
   activeSessionTitle: string;
-  isSessionLoading: boolean;
   onCreateSession: () => void;
   onDeleteSession: (sessionId: string) => Promise<void>;
-  onSelectSession: (sessionId: string) => void;
+  children: React.ReactNode;
   sessions?: Array<{ id: string; title: string }>;
   sidebarPending: boolean;
 }) {
@@ -172,41 +165,40 @@ function ChatWorkspaceLoading(props: {
           activeSessionId={props.activeSessionId}
           onCreateSession={props.onCreateSession}
           onDeleteSession={props.onDeleteSession}
-          onSelectSession={props.onSelectSession}
           sessions={props.sessions}
           sidebarPending={props.sidebarPending}
         />
       </SidebarMiddleContent>
 
-      <div className='@container/chat-workspace flex min-w-0 flex-1 flex-col'>
-        <div className='relative min-h-0 flex-1'>
-          <div className='mx-auto min-h-full w-full max-w-4xl'></div>
-        </div>
-
-        <ChatComposer
-          isSessionLoading={props.isSessionLoading}
-          isStreaming={false}
-          onStop={() => {}}
-          onSubmit={() => {}}
-        />
-      </div>
+      <div className='@container/chat-workspace flex min-w-0 flex-1 flex-col'>{props.children}</div>
     </div>
+  );
+}
+
+function ChatWorkspaceLoadingBody(props: { isSessionLoading: boolean }) {
+  return (
+    <>
+      <div className='relative min-h-0 flex-1'>
+        <div className='mx-auto min-h-full w-full max-w-4xl'></div>
+      </div>
+
+      <ChatComposer
+        isSessionLoading={props.isSessionLoading}
+        isStreaming={false}
+        onStop={() => {}}
+        onSubmit={() => {}}
+      />
+    </>
   );
 }
 
 function ChatWorkspaceRuntime(props: {
   activeSessionId: string | null;
-  activeSessionTitle: string;
   initialMessages: WorkspaceAgentUIMessage[];
   isSessionLoading: boolean;
   onConsumePendingDraft: () => void;
-  onCreateSession: () => void;
   onCreateSessionFromDraft: (message: PromptInputMessage) => Promise<void>;
-  onDeleteSession: (sessionId: string) => Promise<void>;
-  onSelectSession: (sessionId: string) => void;
   pendingDraftMessage: PromptInputMessage | null;
-  sidebarPending: boolean;
-  sessions?: Array<{ id: string; title: string }>;
 }) {
   const { activeSessionId, onConsumePendingDraft, pendingDraftMessage } = props;
   const pendingDraftTriggeredRef = useRef(false);
@@ -224,7 +216,6 @@ function ChatWorkspaceRuntime(props: {
           if (!props.activeSessionId) {
             throw new Error('Cannot send a persisted chat message without a session id.');
           }
-
           return orpcChatTransport.sendMessages({
             ...options,
             sessionId: props.activeSessionId,
@@ -280,38 +271,19 @@ function ChatWorkspaceRuntime(props: {
   };
 
   return (
-    <div className='-mx-2.5 -mb-2.5 flex h-[calc(100vh-3.5rem)] overflow-hidden bg-background'>
-      <DashboardHeaderStartContent>
-        <div className='flex items-center gap-2'>
-          <span className='text-sm font-medium text-foreground'>{props.activeSessionTitle}</span>
-        </div>
-      </DashboardHeaderStartContent>
+    <>
+      <ChatMessagesPane
+        isStreaming={isStreaming}
+        messages={messages}
+        onRespondToApproval={handleApprovalResponse}
+      />
 
-      <SidebarMiddleContent>
-        <ChatSessionList
-          activeSessionId={props.activeSessionId}
-          onCreateSession={props.onCreateSession}
-          onDeleteSession={props.onDeleteSession}
-          onSelectSession={props.onSelectSession}
-          sessions={props.sessions}
-          sidebarPending={props.sidebarPending}
-        />
-      </SidebarMiddleContent>
-
-      <div className='@container/chat-workspace flex min-w-0 flex-1 flex-col'>
-        <ChatMessagesPane
-          isStreaming={isStreaming}
-          messages={messages}
-          onRespondToApproval={handleApprovalResponse}
-        />
-
-        <ChatComposer
-          isSessionLoading={props.isSessionLoading}
-          isStreaming={isStreaming}
-          onStop={stop}
-          onSubmit={handleSubmit}
-        />
-      </div>
-    </div>
+      <ChatComposer
+        isSessionLoading={props.isSessionLoading}
+        isStreaming={isStreaming}
+        onStop={stop}
+        onSubmit={handleSubmit}
+      />
+    </>
   );
 }
