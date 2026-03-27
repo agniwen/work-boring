@@ -213,6 +213,25 @@
   }
 }
 
+@layer components {
+  /* Keep HeroUI table headers visually stable when shadcn/HeroUI layers are combined. */
+  [data-slot='table-header'] {
+    @apply border-b border-separator/50 bg-transparent;
+  }
+
+  [data-slot='table-column'] {
+    @apply bg-surface-secondary text-muted;
+  }
+
+  [data-slot='table-column']:first-child {
+    @apply rounded-tl-2xl;
+  }
+
+  [data-slot='table-column']:last-child {
+    @apply rounded-tr-2xl;
+  }
+}
+
 @layer base {
   html,
   body {
