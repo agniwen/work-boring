@@ -54,7 +54,7 @@ export function ChatMessagesPane({
       <ScrollArea className='h-full' viewportRef={scrollRef}>
         <div
           ref={contentRef}
-          className='mx-auto flex min-h-full w-full max-w-4xl flex-col gap-0 px-4 py-6 sm:px-6'
+          className='mx-auto flex min-h-full w-[720px] max-w-full flex-col gap-0 px-4 py-6 sm:px-6 @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-[960px]'
         >
           {messages.length === 0 ? (
             <ConversationEmptyState

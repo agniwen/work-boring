@@ -178,9 +178,9 @@ function ChatWorkspaceLoading(props: {
         />
       </SidebarMiddleContent>
 
-      <div className='flex min-w-0 flex-1 flex-col'>
+      <div className='@container/chat-workspace flex min-w-0 flex-1 flex-col'>
         <div className='relative min-h-0 flex-1'>
-          <div className='mx-auto flex min-h-full w-full max-w-4xl flex-col px-4 py-6 sm:px-6'></div>
+          <div className='mx-auto flex min-h-full w-[720px] max-w-full flex-col px-4 py-6 sm:px-6 @min-[1020px]/chat-workspace:w-full @min-[1020px]/chat-workspace:max-w-[960px]'></div>
         </div>
 
         <ChatComposer
@@ -298,7 +298,7 @@ function ChatWorkspaceRuntime(props: {
         />
       </SidebarMiddleContent>
 
-      <div className='flex min-w-0 flex-1 flex-col'>
+      <div className='@container/chat-workspace flex min-w-0 flex-1 flex-col'>
         <ChatMessagesPane
           isStreaming={isStreaming}
           messages={messages}
