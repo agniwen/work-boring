@@ -1,11 +1,14 @@
 import { queryClient } from '@renderer/lib/query-client';
 import { routeTree } from '@renderer/routeTree.gen';
-import { createRouter } from '@tanstack/react-router';
+import { createHashHistory, createRouter } from '@tanstack/react-router';
+
+const history = window.location.protocol === 'file:' ? createHashHistory() : undefined;
 
 export const router = createRouter({
   context: {
     queryClient,
   },
+  history,
   routeTree,
   defaultPreload: 'intent',
   scrollRestoration: true,
