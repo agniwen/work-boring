@@ -43,7 +43,7 @@ function DashboardLayout() {
                 }}
               >
                 <div className='h-full pt-11.5'>
-                  <div className='h-full px-4'>
+                  <div className='h-full overflow-auto px-4'>
                     <Outlet />
                   </div>
                 </div>
