@@ -49,7 +49,7 @@ const renderBashSummary: ToolSummaryRenderer = (part) => {
   }
 
   return (
-    <div className='space-y-1.5 rounded-md bg-muted/3 px-2.5 py-2'>
+    <div className='space-y-1.5 rounded-md bg-muted/5 px-2.5 py-2'>
       <div className='flex flex-wrap items-center gap-1.5 text-[11px] leading-4.5 text-muted-foreground/80'>
         {typeof cwd === 'string' ? <span className='font-mono'>cwd {cwd}</span> : null}
         {typeof timeoutMs === 'number' ? <span className='font-mono'>{timeoutMs}ms</span> : null}
@@ -69,7 +69,7 @@ const renderReadSummary: ToolSummaryRenderer = (part) => {
   }
 
   return (
-    <div className='rounded-md bg-muted/3 px-2.5 py-2'>
+    <div className='rounded-md bg-muted/5 px-2.5 py-2'>
       <div className='mb-1 text-[11px] leading-4.5 font-medium tracking-wide text-muted-foreground/80 uppercase'>
         Reading
       </div>
@@ -88,14 +88,14 @@ const renderWriteSummary: ToolSummaryRenderer = (part) => {
   }
 
   return (
-    <div className='space-y-1.5 rounded-md bg-muted/3 px-2.5 py-2'>
+    <div className='space-y-1.5 rounded-xl bg-muted/5 px-2.5 py-2'>
       <div className='flex flex-wrap items-center gap-1.5 text-[11px] leading-4.5 text-muted-foreground/80'>
         <span className='font-medium uppercase'>Writing</span>
         {typeof mode === 'string' ? <span className='font-mono'>{mode}</span> : null}
       </div>
       <div className='font-mono text-xs leading-4.5 break-all text-foreground/88'>{path}</div>
       {typeof content === 'string' ? (
-        <pre className='max-h-64 overflow-auto rounded-sm bg-background/45 px-2 py-1.5 font-mono text-xs leading-4.5 whitespace-pre-wrap text-foreground/88'>
+        <pre className='max-h-64 overflow-auto rounded-xl bg-background px-2 py-1.5 font-mono text-xs leading-4.5 whitespace-pre-wrap text-foreground/88'>
           {content}
         </pre>
       ) : null}
@@ -135,7 +135,7 @@ const renderGrepSummary: ToolSummaryRenderer = (part) => {
   }
 
   return (
-    <div className='space-y-1.5 rounded-md bg-muted/3 px-2.5 py-2'>
+    <div className='space-y-1.5 rounded-md bg-muted/5 px-2.5 py-2'>
       <div className='flex flex-wrap items-center gap-1.5 text-[11px] leading-4.5 text-muted-foreground/80'>
         <span className='font-medium uppercase'>Search</span>
         {typeof path === 'string' ? <span className='font-mono'>{path}</span> : null}
@@ -175,7 +175,7 @@ function renderFallbackSummary(part: ToolPart) {
   }
 
   return (
-    <div className='rounded-md bg-muted/3 px-2.5 py-2'>
+    <div className='rounded-md bg-muted/5 px-2.5 py-2'>
       <div className='space-y-1'>
         {entries.map((entry) => (
           <div className='flex items-start gap-2 text-xs leading-4.5' key={entry.key}>

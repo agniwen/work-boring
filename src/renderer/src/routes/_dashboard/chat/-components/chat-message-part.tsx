@@ -42,7 +42,7 @@ export function ChatMessagePart({ isStreaming, onRespondToApproval, part }: Chat
   // Keep approval decisions visible on the card so users can act without opening tool details.
   const approvalContent =
     approval && onRespondToApproval ? (
-      <div className='flex flex-col gap-2 rounded-md bg-muted/3 px-2.5 py-2'>
+      <div className='flex flex-col gap-2 rounded-md bg-muted/5 px-2.5 py-2'>
         <div className='space-y-1'>
           <p className='text-xs leading-4.5 font-medium text-foreground/88'>
             This tool needs approval before it can access a path outside the workspace.
