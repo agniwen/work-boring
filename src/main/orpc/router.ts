@@ -73,6 +73,10 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
         .input(renameChatSessionInput)
         .handler(async ({ input }) => chatService.renameSession(input.sessionId, input.title)),
     },
+    dashboard: {
+      // Renderer reads one aggregate snapshot instead of rebuilding chat metrics client-side.
+      summary: os.input(emptyInput).handler(async () => chatService.getDashboardSummary()),
+    },
     skills: {
       list: os.input(emptyInput).handler(async () => skillService.listInstalledSkills()),
     },

@@ -28,6 +28,18 @@ export class ChatSessionRepository {
     return sessions;
   }
 
+  async getLatest() {
+    const db = getDb();
+    const [session] = await db
+      .select()
+      .from(chatSessions)
+      .where(ne(chatSessions.status, 'deleted'))
+      .orderBy(desc(chatSessions.lastMessageAt), desc(chatSessions.updatedAt))
+      .limit(1);
+
+    return session ?? null;
+  }
+
   async getById(sessionId: string) {
     const db = getDb();
     const [session] = await db

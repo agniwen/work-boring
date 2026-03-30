@@ -1,3 +1,4 @@
+import type { LanguageModelUsage } from 'ai';
 import { eq } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 
@@ -11,6 +12,25 @@ function now() {
 
 function parseParts(partsJson: string) {
   return JSON.parse(partsJson) as WorkspaceAgentUIMessage['parts'];
+}
+
+export interface PersistedMessageMetadata {
+  finishedAt?: number;
+  modelId?: string;
+  usage?: LanguageModelUsage;
+  usageSource?: 'estimated' | 'provider';
+}
+
+function parseMetadata(metadata: string | null) {
+  if (!metadata) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(metadata) as PersistedMessageMetadata;
+  } catch {
+    return null;
+  }
 }
 
 export class ChatMessageRepository {
@@ -70,7 +90,12 @@ export class ChatMessageRepository {
 
   async updateMessage(
     messageId: string,
-    input: { parts?: WorkspaceAgentUIMessage['parts']; status: string; errorText?: string | null },
+    input: {
+      parts?: WorkspaceAgentUIMessage['parts'];
+      status: string;
+      errorText?: string | null;
+      metadata?: PersistedMessageMetadata | null;
+    },
   ) {
     const db = getDb();
     const updatePayload: Partial<typeof chatMessages.$inferInsert> = {
@@ -83,6 +108,10 @@ export class ChatMessageRepository {
       updatePayload.partsJson = JSON.stringify(input.parts);
     }
 
+    if ('metadata' in input) {
+      updatePayload.metadata = input.metadata ? JSON.stringify(input.metadata) : null;
+    }
+
     const [message] = await db
       .update(chatMessages)
       .set(updatePayload)
@@ -90,6 +119,28 @@ export class ChatMessageRepository {
       .returning();
 
     return message ?? null;
+  }
+
+  async listDashboardRows() {
+    const db = getDb();
+    const rows = await db
+      .select({
+        createdAt: chatMessages.createdAt,
+        metadata: chatMessages.metadata,
+        partsJson: chatMessages.partsJson,
+        role: chatMessages.role,
+        updatedAt: chatMessages.updatedAt,
+      })
+      .from(chatMessages)
+      .orderBy(chatMessages.createdAt);
+
+    return rows.map((row) => ({
+      createdAt: row.createdAt,
+      metadata: parseMetadata(row.metadata),
+      parts: parseParts(row.partsJson),
+      role: row.role as WorkspaceAgentUIMessage['role'],
+      updatedAt: row.updatedAt,
+    }));
   }
 
   toUIMessage(row: ChatMessageRow): WorkspaceAgentUIMessage {
