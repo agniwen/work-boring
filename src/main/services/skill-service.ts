@@ -63,6 +63,11 @@ function extractFrontmatter(content: string) {
   return match?.[1] ?? null;
 }
 
+function stripFrontmatter(content: string) {
+  const match = FRONTMATTER_PATTERN.exec(content);
+  return match ? content.slice(match[0].length).trim() : content.trim();
+}
+
 function unquoteScalar(value: string) {
   const trimmed = value.trim();
 
@@ -320,6 +325,29 @@ export class SkillService {
         sourceKind: '.codex',
       },
     ];
+  }
+
+  // Read the SKILL.md body (without frontmatter) for a given skill name.
+  // Returns null if the skill is not found or the file cannot be read.
+  async readSkillContent(
+    skills: InstalledSkillRecord[],
+    name: string,
+  ): Promise<{ skillDirectory: string; content: string } | null> {
+    const skill = skills.find((s) => s.name.toLowerCase() === name.toLowerCase());
+
+    if (!skill) {
+      return null;
+    }
+
+    const skillFilePath = join(skill.location, 'SKILL.md');
+
+    try {
+      const raw = await readFile(skillFilePath, 'utf-8');
+      const content = stripFrontmatter(raw);
+      return { skillDirectory: skill.location, content };
+    } catch {
+      return null;
+    }
   }
 
   async listInstalledSkills(): Promise<InstalledSkillsResult> {

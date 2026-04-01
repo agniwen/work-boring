@@ -6,6 +6,7 @@ import {
   type PersistedMessageMetadata,
 } from '../db/repositories/chat-message-repo';
 import { ChatSessionRepository } from '../db/repositories/chat-session-repo';
+import type { SkillService } from './skill-service';
 
 interface StreamChatInput {
   messages: WorkspaceAgentUIMessage[];
@@ -18,6 +19,7 @@ interface ChatServiceDeps {
   getSystemPrompt: () => string;
   messageRepository: ChatMessageRepository;
   sessionRepository: ChatSessionRepository;
+  skillService: SkillService;
 }
 
 type AgentUIMessageStream = Awaited<ReturnType<typeof createAgentUIStream>>;
@@ -83,7 +85,7 @@ function createEmptyUsage(): LanguageModelUsage {
 }
 
 function sumTokenValue(left?: number, right?: number) {
-  if (left == null && right == null) {
+  if (left === undefined && right === undefined) {
     return undefined;
   }
 
@@ -145,7 +147,7 @@ function getUsageTokenCount(metadata: PersistedMessageMetadata | null, fallbackT
   const usage = metadata?.usage;
   const totalTokens = usage?.totalTokens ?? sumTokenValue(usage?.inputTokens, usage?.outputTokens);
 
-  if (totalTokens != null) {
+  if (totalTokens !== undefined) {
     return totalTokens;
   }
 
@@ -314,9 +316,19 @@ export class ChatService {
     try {
       let aggregatedUsage = createEmptyUsage();
 
+      // Re-discover skills on each stream so new skills are picked up without restarting.
+      const { skills } = await this.deps.skillService.listInstalledSkills();
+
       return await createAgentUIStream({
         agent: this.deps.agent,
         uiMessages: input.messages,
+        options: {
+          skills: skills.map((s) => ({
+            name: s.name,
+            description: s.description,
+            location: s.location,
+          })),
+        },
         // Pass original messages so AI SDK can continue the last assistant message in place after
         // approvals instead of emitting a duplicate assistant turn.
         originalMessages: input.messages,

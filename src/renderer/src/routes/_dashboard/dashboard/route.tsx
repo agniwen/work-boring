@@ -2,12 +2,7 @@ import { Button, Card, Chip } from '@heroui/react';
 import { orpc } from '@renderer/lib/orpc';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import {
-  Activity,
-  ChartColumnIncreasing,
-  MessageSquareMore,
-  Sparkles,
-} from 'lucide-react';
+import { Activity, ChartColumnIncreasing, MessageSquareMore, Sparkles } from 'lucide-react';
 import type { ReactNode } from 'react';
 import {
   Bar,
@@ -220,19 +215,15 @@ function Dashboard() {
             {summary?.latestSession ? (
               <div className='space-y-4'>
                 <div className='space-y-3 rounded-2xl border p-4'>
-                  <div className='text-xs uppercase tracking-[0.22em] text-muted-foreground'>
+                  <div className='text-xs tracking-[0.22em] text-muted-foreground uppercase'>
                     Latest Session
                   </div>
                   <div className='text-xl font-semibold text-foreground'>
                     {summary.latestSession.title}
                   </div>
                   <div className='flex flex-wrap gap-2'>
-                    <Chip size='sm'>
-                      {summary.latestSession.model ?? 'Unknown model'}
-                    </Chip>
-                    <Chip size='sm'>
-                      {summary.latestSession.status}
-                    </Chip>
+                    <Chip size='sm'>{summary.latestSession.model ?? 'Unknown model'}</Chip>
+                    <Chip size='sm'>{summary.latestSession.status}</Chip>
                   </div>
                 </div>
 
@@ -269,20 +260,17 @@ function Dashboard() {
   );
 }
 
-function MetricCard(props: {
-  description: string;
-  icon: ReactNode;
-  label: string;
-  value: string;
-}) {
+function MetricCard(props: { description: string; icon: ReactNode; label: string; value: string }) {
   return (
     <Card>
       <Card.Content className='p-4'>
         <div className='flex items-center gap-2 text-muted-foreground'>
           {props.icon}
-          <div className='text-xs uppercase tracking-[0.22em]'>{props.label}</div>
+          <div className='text-xs tracking-[0.22em] uppercase'>{props.label}</div>
         </div>
-        <div className='mt-4 text-3xl font-semibold tracking-tight text-foreground'>{props.value}</div>
+        <div className='mt-4 text-3xl font-semibold tracking-tight text-foreground'>
+          {props.value}
+        </div>
         <div className='mt-2 text-sm leading-6 text-muted-foreground'>{props.description}</div>
       </Card.Content>
     </Card>
@@ -292,7 +280,7 @@ function MetricCard(props: {
 function InfoCard(props: { label: string; value: string }) {
   return (
     <div className='rounded-2xl border p-4'>
-      <div className='text-xs uppercase tracking-[0.18em] text-muted-foreground'>{props.label}</div>
+      <div className='text-xs tracking-[0.18em] text-muted-foreground uppercase'>{props.label}</div>
       <div className='mt-2 text-sm font-medium text-foreground'>{props.value}</div>
     </div>
   );

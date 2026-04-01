@@ -32,16 +32,28 @@ interface CreateAppRouterDeps {
 export function createAppRouter(deps: CreateAppRouterDeps) {
   const sessionRepository = new ChatSessionRepository();
   const messageRepository = new ChatMessageRepository();
-  const workspaceAgentRuntime = createWorkspaceAgentRuntime();
+
+  const workspaceRoot = process.cwd();
+  const skillService = new SkillService({ workspaceRoot });
+
+  // Discover skills once at startup; the list is refreshed on each chat stream
+  // so newly added skills are picked up without restarting the app.
+  let cachedSkills = skillService.listInstalledSkills().then((r) => r.skills);
+
+  const workspaceAgentRuntime = createWorkspaceAgentRuntime({
+    skillService,
+    // Initial empty skills – will be populated once discovery completes.
+    skills: [],
+    workspaceRoot,
+  });
+
   const chatService = new ChatService({
     agent: workspaceAgentRuntime.agent,
     getModelName: () => workspaceAgentRuntime.modelName,
     getSystemPrompt: () => workspaceAgentRuntime.instructions,
     messageRepository,
     sessionRepository,
-  });
-  const skillService = new SkillService({
-    workspaceRoot: workspaceAgentRuntime.workspaceRoot,
+    skillService,
   });
 
   return {
@@ -74,11 +86,15 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
         .handler(async ({ input }) => chatService.renameSession(input.sessionId, input.title)),
     },
     dashboard: {
-      // Renderer reads one aggregate snapshot instead of rebuilding chat metrics client-side.
       summary: os.input(emptyInput).handler(async () => chatService.getDashboardSummary()),
     },
     skills: {
       list: os.input(emptyInput).handler(async () => skillService.listInstalledSkills()),
+      // Allow renderer to trigger a re-scan of skills directories.
+      refresh: os.input(emptyInput).handler(async () => {
+        cachedSkills = skillService.listInstalledSkills().then((r) => r.skills);
+        return cachedSkills;
+      }),
     },
     system: {
       info: os.input(emptyInput).handler(async () => deps.getSystemInfo()),
