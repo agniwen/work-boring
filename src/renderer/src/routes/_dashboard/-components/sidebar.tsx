@@ -1,4 +1,3 @@
-import { Label, ListBox, Surface } from '@heroui/react';
 import {
   SIDEBAR_MAX_WIDTH,
   SIDEBAR_MIN_WIDTH,
@@ -120,34 +119,28 @@ export function Sidebar() {
       >
         <div className='h-11' />
         <div className='overflow-y-aut flex h-[calc(100vh-44px)] transform-[translateZ(0)] flex-col'>
-          <ListBox
-            aria-label='Navigation'
-            selectionMode='single'
-            selectedKeys={selectedKey ? [selectedKey] : []}
-            className='w-full gap-1 px-2 py-3'
-          >
-            {NAV_ITEMS.map((item) => (
-              <ListBox.Item
-                key={item.id}
-                id={item.id}
-                textValue={item.label}
-                className='bg-transparent px-0 py-0 data-[hovered=true]:bg-transparent data-[selected=true]:bg-transparent data-[selected=true]:text-neutral-800'
-                onPress={() => navigate({ to: item.id })}
-              >
-                {({ isSelected }) => (
-                  <Surface
-                    className={cn('flex w-full items-center gap-3 rounded-2xl px-2.5 py-2', {
-                      'shadow-xs': isSelected,
-                    })}
-                    variant={isSelected ? 'default' : 'transparent'}
+          <ul aria-label='Navigation' className='w-full space-y-px px-2 py-3'>
+            {NAV_ITEMS.map((item) => {
+              const isSelected = selectedKey === item.id;
+              return (
+                <li
+                  key={item.id}
+                  data-selected={isSelected}
+                  className={cn(
+                    'w-full min-w-0 rounded-lg px-2 hover:bg-border/60 data-[selected=true]:bg-border/60',
+                  )}
+                >
+                  <button
+                    className='flex w-full cursor-default items-center gap-3 py-1 text-sm opacity-80 outline-none'
+                    onClick={() => navigate({ to: item.id })}
                   >
-                    <span>{item.icon}</span>
-                    <Label>{item.label}</Label>
-                  </Surface>
-                )}
-              </ListBox.Item>
-            ))}
-          </ListBox>
+                    <span className='shrink-0'>{item.icon}</span>
+                    <span className='truncate'>{item.label}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
 
           <div className='mt-3 min-h-0 flex-1 overflow-hidden'>
             <SidebarMiddleTarget />

@@ -31,7 +31,7 @@ export function ChatComposer({
 
   return (
     <div className='mx-auto w-full max-w-4xl px-1.5 pb-1'>
-      <Card className='relative z-9999 bg-white p-0'>
+      <Card className='relative z-9999 border border-border/40 bg-white p-0 shadow-none'>
         <PromptInput className='rounded-2xl border border-border/40' onSubmit={onSubmit}>
           <PromptInputBody>
             <PromptInputTextarea

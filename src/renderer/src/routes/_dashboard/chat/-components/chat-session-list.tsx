@@ -93,30 +93,30 @@ export const ChatSessionList = memo(function ChatSessionList({
           </Tooltip>
         </div>
       </div>
-      <div className='h-[calc(100vh-246px)] w-full overflow-auto py-3'>
-        <ul aria-label='Sessions' className='w-full p-1' key='session-list'>
+      <div className='h-[calc(100vh-246px)] w-full overflow-auto py-0.5'>
+        <ul aria-label='Sessions' className='w-full space-y-px p-1' key='session-list'>
           {sessions?.map((session) => (
             <li
               key={session.id}
               id={session.id}
               data-selected={activeSessionId === session.id}
               className={
-                'w-full min-w-0 rounded-xl px-2 hover:bg-white hover:ring hover:ring-border/40 **:data-[slot=label]:text-foreground/40 data-[selected=true]:**:data-[slot=label]:text-foreground'
+                'w-full min-w-0 rounded-lg px-2 hover:bg-border data-[selected=true]:bg-border/60 **:data-[slot=label]:text-foreground/40 data-[selected=true]:**:data-[slot=label]:text-foreground'
               }
             >
               <div className='group flex w-full min-w-0 items-center justify-between gap-3 overflow-hidden'>
                 <Link
-                  className='min-w-0 flex-1 cursor-default rounded-xl py-1 outline-none'
+                  className='min-w-0 flex-1 cursor-default rounded-xl py-1.5 outline-none'
                   params={{ sessionId: session.id }}
                   to='/chat/{-$sessionId}'
                 >
                   <Tooltip>
                     <TooltipTrigger className='truncate'>
-                      <Label className='line block w-full truncate overflow-hidden text-sm font-normal whitespace-nowrap'>
+                      <Label className='line block w-full truncate overflow-hidden text-xs font-normal whitespace-nowrap'>
                         {session.title}
                       </Label>
                     </TooltipTrigger>
-                    <TooltipContent placement='top start'>
+                    <TooltipContent placement='right'>
                       <p className='max-w-80 wrap-break-word'>{session.title}</p>
                     </TooltipContent>
                   </Tooltip>
