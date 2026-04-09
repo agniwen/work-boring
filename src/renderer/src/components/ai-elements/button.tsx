@@ -1,6 +1,5 @@
 'use client';
 
-import { Button as HeroButton } from '@heroui/react';
 import { cn } from '@renderer/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from 'radix-ui';
@@ -21,6 +20,8 @@ const aiElementsButtonVariants = cva(
           'border-border bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
+        tertiary:
+          'hover:bg-muted hover:text-foreground dark:hover:bg-muted/50',
       },
       size: {
         default:
@@ -41,59 +42,23 @@ const aiElementsButtonVariants = cva(
   },
 );
 
-type AIElementsButtonVariant = NonNullable<
-  VariantProps<typeof aiElementsButtonVariants>['variant']
->;
-type AIElementsButtonSize = NonNullable<VariantProps<typeof aiElementsButtonVariants>['size']>;
-
-const heroVariantMap: Record<
-  AIElementsButtonVariant,
-  'primary' | 'outline' | 'secondary' | 'ghost' | 'danger-soft'
-> = {
-  default: 'primary',
-  destructive: 'danger-soft',
-  ghost: 'ghost',
-  link: 'ghost',
-  outline: 'outline',
-  secondary: 'secondary',
-};
-
-const heroSizeMap: Record<AIElementsButtonSize, 'sm' | 'md' | 'lg'> = {
-  default: 'md',
-  icon: 'md',
-  'icon-lg': 'lg',
-  'icon-sm': 'sm',
-  'icon-xs': 'sm',
-  lg: 'lg',
-  sm: 'sm',
-  xs: 'sm',
-};
-
-export type ButtonProps = Omit<React.ComponentProps<'button'>, 'disabled'> & {
-  disabled?: boolean;
-} & VariantProps<typeof aiElementsButtonVariants> & {
+export type ButtonProps = React.ComponentProps<'button'> &
+  VariantProps<typeof aiElementsButtonVariants> & {
     asChild?: boolean;
   };
-
-const isIconOnlySize = (size: AIElementsButtonSize) => size.startsWith('icon');
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   {
     className,
-    variant: variantProp = 'default',
-    size: sizeProp = 'default',
+    variant = 'default',
+    size = 'default',
     asChild = false,
-    disabled,
     type = 'button',
-    value,
     ...props
   },
   ref,
 ) {
-  const variant = variantProp ?? 'default';
-  const size = sizeProp ?? 'default';
   const classes = cn(aiElementsButtonVariants({ variant, size }), className);
-  const heroProps = props as unknown as Omit<React.ComponentProps<typeof HeroButton>, 'children'>;
 
   if (asChild) {
     return (
@@ -108,26 +73,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function 
   }
 
   return (
-    <HeroButton
+    <button
       ref={ref}
       className={classes}
       data-size={size}
+      data-slot='button'
       data-variant={variant}
-      isDisabled={disabled}
-      isIconOnly={isIconOnlySize(size)}
-      size={heroSizeMap[size]}
       type={type}
-      value={
-        typeof value === 'string'
-          ? value
-          : typeof value === 'number'
-            ? String(value)
-            : Array.isArray(value)
-              ? value.join(',')
-              : undefined
-      }
-      variant={heroVariantMap[variant]}
-      {...heroProps}
+      {...props}
     />
   );
 });

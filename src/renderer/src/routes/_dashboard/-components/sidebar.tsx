@@ -1,161 +1,81 @@
 import {
-  SIDEBAR_MAX_WIDTH,
-  SIDEBAR_MIN_WIDTH,
-  sidebarOpenAtom,
-  sidebarResizingAtom,
-  sidebarWidthAtom,
-} from '@renderer/atom/app';
-import { cn } from '@renderer/lib/utils';
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarResizeHandle,
+} from '@renderer/components/ui/sidebar';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { useAtom } from 'jotai';
-import { Projector, Layers, MessagesSquare } from 'lucide-react';
-import { useEffect, useRef } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
+import { Layers, MessagesSquare, Projector } from 'lucide-react';
 
 import { SidebarMiddleTarget } from './sidebar-portal';
-
-const RESIZE_HANDLE_WIDTH = 4;
 
 const NAV_ITEMS = [
   {
     id: '/dashboard',
     label: 'Dashboard',
-    icon: <Projector size={16} />,
+    icon: Projector,
   },
   {
     id: '/chat',
     label: 'Chat',
-    icon: <MessagesSquare size={16} />,
+    icon: MessagesSquare,
   },
   {
     id: '/skills',
     label: 'Skills',
-    icon: <Layers size={16} />,
+    icon: Layers,
   },
 ];
 
-export function Sidebar() {
-  const [sidebarWidth, setSidebarWidth] = useAtom(sidebarWidthAtom);
-  const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
-  const [isResizing, setIsResizing] = useAtom(sidebarResizingAtom);
-  const sidebarWidthRef = useRef(sidebarWidth);
+export function AppSidebar() {
   const routerState = useRouterState();
   const navigate = useNavigate();
   const currentPath = routerState.location.pathname;
 
-  useEffect(() => {
-    sidebarWidthRef.current = sidebarWidth;
-  }, [sidebarWidth]);
-
-  // 找到当前匹配的 nav item key
   const selectedKey = NAV_ITEMS.find(
     (item) => currentPath === item.id || currentPath.startsWith(item.id + '/'),
   )?.id;
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
-    setIsResizing(true);
-    document.body.style.userSelect = 'none';
-    document.body.style.cursor = 'col-resize';
-  };
-
-  useEffect(() => {
-    if (!isResizing) {
-      return;
-    }
-
-    const clampWidth = (width: number) =>
-      Math.min(SIDEBAR_MAX_WIDTH, Math.max(SIDEBAR_MIN_WIDTH, width));
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const newWidth = clampWidth(e.clientX);
-
-      if (newWidth !== sidebarWidthRef.current) {
-        sidebarWidthRef.current = newWidth;
-        setSidebarWidth(newWidth);
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-    };
-
-    window.addEventListener('mousemove', handleMouseMove, { passive: true });
-    window.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = '';
-      document.body.style.cursor = '';
-    };
-  }, [isResizing, setSidebarWidth, setIsResizing]);
-
-  useHotkeys(
-    'meta+b',
-    (e) => {
-      e.preventDefault();
-      setSidebarOpen(!sidebarOpen);
-    },
-    { enableOnFormTags: true },
-  );
-
   return (
-    <>
-      <div
-        className={`absolute top-0 left-0 z-10 h-full shrink-0 transform-gpu border-r border-border/80 bg-border/10 ${
-          isResizing ? '' : 'transition-transform duration-300 ease-out'
-        }`}
-        style={{
-          width: `${sidebarWidth}px`,
-          transform: sidebarOpen ? 'translateX(0)' : `translateX(-${sidebarWidth}px)`,
-          // Keep sidebar open/close on its own compositor layer to reduce full-page repainting.
-          contain: 'layout paint',
-          transformOrigin: 'left center',
-          willChange: isResizing ? 'width' : 'transform',
-        }}
-      >
-        <div className='h-11' />
-        <div className='overflow-y-aut flex h-[calc(100vh-44px)] transform-[translateZ(0)] flex-col'>
-          <ul aria-label='Navigation' className='w-full space-y-px px-2 py-3'>
-            {NAV_ITEMS.map((item) => {
-              const isSelected = selectedKey === item.id;
-              return (
-                <li
-                  key={item.id}
-                  data-selected={isSelected}
-                  className={cn(
-                    'w-full min-w-0 rounded-lg px-2 hover:bg-border/60 data-[selected=true]:bg-border/60',
-                  )}
-                >
-                  <button
-                    className='flex w-full cursor-default items-center gap-3 py-1 text-sm opacity-80 outline-none'
+    <Sidebar>
+      {/* Spacer for the fixed header / Electron traffic-light buttons */}
+      <SidebarHeader className='h-11 p-0' />
+
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {NAV_ITEMS.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    isActive={selectedKey === item.id}
+                    tooltip={item.label}
                     onClick={() => navigate({ to: item.id })}
+                    className='cursor-default'
                   >
-                    <span className='shrink-0'>{item.icon}</span>
-                    <span className='truncate'>{item.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                    <item.icon size={16} />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-          <div className='mt-3 min-h-0 flex-1 overflow-hidden'>
+        {/* Portal target: chat route injects session list here */}
+        <SidebarGroup className='min-h-0 flex-1 overflow-hidden'>
+          <SidebarGroupContent className='h-full overflow-auto'>
             <SidebarMiddleTarget />
-          </div>
-        </div>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
 
-        <button
-          className={`absolute top-0 right-0 h-full cursor-col-resize transition-colors`}
-          style={{
-            width: `${RESIZE_HANDLE_WIDTH}px`,
-            willChange: 'background-color',
-          }}
-          onMouseDown={handleMouseDown}
-        />
-      </div>
-    </>
+      <SidebarResizeHandle />
+    </Sidebar>
   );
 }

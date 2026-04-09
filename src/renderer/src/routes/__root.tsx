@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { TooltipProvider } from '@renderer/components/ui/tooltip';
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
 
 export interface RouterAppContext {
@@ -10,5 +11,9 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootComponent(): React.JSX.Element {
-  return <Outlet />;
+  return (
+    <TooltipProvider>
+      <Outlet />
+    </TooltipProvider>
+  );
 }

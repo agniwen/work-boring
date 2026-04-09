@@ -1,16 +1,16 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@import '@heroui/styles';
+@import '@fontsource-variable/geist';
 @source '../../../node_modules/streamdown/dist/*.js';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-sans: var(--font-sans);
   --font-heading: var(--font-sans);
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
-
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -26,6 +26,7 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -34,15 +35,6 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -51,145 +43,89 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-:root,
-.light,
-.default,
-[data-theme='light'],
-[data-theme='default'] {
-  /* HeroUI - Light */
-  --accent: oklch(62.04% 0.195 253.83);
-  --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(97.02% 0.0015 253.83);
-  --border: oklch(90% 0.0015 253.83);
-  --danger: oklch(65.32% 0.2335 25.74);
-  --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(94% 0.0015 253.83);
-  --default-foreground: oklch(21.03% 0.0059 253.83);
-  --field-background: oklch(100% 0.0008 253.83);
-  --field-foreground: oklch(21.03% 0.0015 253.83);
-  --field-placeholder: oklch(55.17% 0.003 253.83);
-  --focus: oklch(62.04% 0.195 253.83);
-  --foreground: oklch(21.03% 0.0015 253.83);
-  --muted: oklch(55.17% 0.003 253.83);
-  --overlay: oklch(100% 0.0004 253.83);
-  --overlay-foreground: oklch(21.03% 0.0015 253.83);
-  --scrollbar: oklch(87.1% 0.0015 253.83);
-  --segment: oklch(100% 0.0015 253.83);
-  --segment-foreground: oklch(21.03% 0.0015 253.83);
-  --separator: oklch(92% 0.0015 253.83);
-  --success: oklch(73.29% 0.1941 150.81);
-  --success-foreground: oklch(21.03% 0.0059 150.81);
-  --surface: oklch(100% 0.0008 253.83);
-  --surface-foreground: oklch(21.03% 0.0015 253.83);
-  --surface-secondary: oklch(95.24% 0.0012 253.83);
-  --surface-secondary-foreground: oklch(21.03% 0.0015 253.83);
-  --surface-tertiary: oklch(93.73% 0.0012 253.83);
-  --surface-tertiary-foreground: oklch(21.03% 0.0015 253.83);
-  --warning: oklch(78.19% 0.159 72.33);
-  --warning-foreground: oklch(21.03% 0.0059 72.33);
-  --radius: 0.5rem;
-  --field-radius: 0.75rem;
-  --font-sans: var(--font-inter);
-
-  /* Shadcn only - Light */
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
-  --card-foreground: var(--foreground);
+  --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
-  --popover-foreground: var(--foreground);
+  --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.488 0.243 264.376);
   --primary-foreground: oklch(0.97 0.014 254.604);
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: oklch(0.845 0.143 164.978);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.596 0.145 163.225);
+  --chart-4: oklch(0.508 0.118 165.612);
+  --chart-5: oklch(0.432 0.095 166.913);
+  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.546 0.245 262.881);
   --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark,
-[data-theme='dark'] {
-  color-scheme: dark;
-
-  /* HeroUI - Dark */
-  --accent: oklch(62.04% 0.195 253.83);
-  --accent-foreground: oklch(99.11% 0 0);
-  --background: oklch(12% 0.0015 253.83);
-  --border: oklch(28% 0.0015 253.83);
-  --danger: oklch(59.4% 0.1973 24.63);
-  --danger-foreground: oklch(99.11% 0 0);
-  --default: oklch(27.4% 0.0015 253.83);
-  --default-foreground: oklch(99.11% 0 0);
-  --field-background: oklch(21.03% 0.003 253.83);
-  --field-foreground: oklch(99.11% 0.0015 253.83);
-  --field-placeholder: oklch(70.5% 0.003 253.83);
-  --focus: oklch(62.04% 0.195 253.83);
-  --foreground: oklch(99.11% 0.0015 253.83);
-  --muted: oklch(70.5% 0.003 253.83);
-  --overlay: oklch(21.03% 0.003 253.83);
-  --overlay-foreground: oklch(99.11% 0.0015 253.83);
-  --scrollbar: oklch(70.5% 0.0015 253.83);
-  --segment: oklch(39.64% 0.0015 253.83);
-  --segment-foreground: oklch(99.11% 0.0015 253.83);
-  --separator: oklch(25% 0.0015 253.83);
-  --success: oklch(73.29% 0.1941 150.81);
-  --success-foreground: oklch(21.03% 0.0059 150.81);
-  --surface: oklch(21.03% 0.003 253.83);
-  --surface-foreground: oklch(99.11% 0.0015 253.83);
-  --surface-secondary: oklch(25.7% 0.0023 253.83);
-  --surface-secondary-foreground: oklch(99.11% 0.0015 253.83);
-  --surface-tertiary: oklch(27.21% 0.0023 253.83);
-  --surface-tertiary-foreground: oklch(99.11% 0.0015 253.83);
-  --warning: oklch(82.03% 0.1392 76.34);
-  --warning-foreground: oklch(21.03% 0.0059 76.34);
-
-  /* Shadcn only - Dark */
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
-  --card-foreground: var(--foreground);
+  --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
-  --popover-foreground: var(--foreground);
+  --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.424 0.199 265.638);
   --primary-foreground: oklch(0.97 0.014 254.604);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --chart-1: oklch(0.845 0.143 164.978);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.596 0.145 163.225);
+  --chart-4: oklch(0.508 0.118 165.612);
+  --chart-5: oklch(0.432 0.095 166.913);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.623 0.214 259.815);
   --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
-  --sidebar-accent: var(--accent);
-  --sidebar-accent-foreground: var(--accent-foreground);
-  --sidebar-border: var(--border);
-  --sidebar-ring: var(--ring);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--scrollbar) 42%, transparent) transparent;
+    scrollbar-color: var(--border) transparent;
   }
 
   *::-webkit-scrollbar {
@@ -206,18 +142,18 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: color-mix(in oklab, var(--scrollbar) 82%, transparent);
+    background-color: var(--border);
     border: 0.1875rem solid transparent;
     border-radius: 9999px;
     background-clip: content-box;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background-color: color-mix(in oklab, var(--scrollbar) 88%, var(--foreground) 12%);
+    background-color: color-mix(in oklab, var(--border) 80%, var(--foreground) 20%);
   }
 
   *::-webkit-scrollbar-thumb:active {
-    background-color: color-mix(in oklab, var(--scrollbar) 78%, var(--foreground) 22%);
+    background-color: color-mix(in oklab, var(--border) 65%, var(--foreground) 35%);
   }
 
   body {
@@ -245,13 +181,13 @@
 }
 
 @layer components {
-  /* Keep HeroUI table headers visually stable when shadcn/HeroUI layers are combined. */
+  /* Table header styling */
   [data-slot='table-header'] {
-    @apply border-b border-separator/50 bg-transparent;
+    @apply border-b bg-transparent;
   }
 
   [data-slot='table-column'] {
-    @apply bg-surface-secondary text-muted;
+    @apply text-muted;
   }
 
   [data-slot='table-column']:first-child {
@@ -260,60 +196,6 @@
 
   [data-slot='table-column']:last-child {
     @apply rounded-tr-2xl;
-  }
-
-  /* Keep streamed markdown tables visually aligned with the HeroUI table treatment used elsewhere. */
-  [data-streamdown='table-wrapper'] {
-    @apply relative my-4 grid w-full overflow-clip rounded-xl! bg-background! p-1;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  [data-streamdown='table-wrapper'] > div:last-child {
-    @apply overflow-x-auto overflow-y-auto rounded-2xl border-0 bg-transparent;
-  }
-
-  [data-streamdown='table'],
-  [data-streamdown='table-fullscreen'] [data-streamdown='table'] {
-    @apply w-full border-separate border-spacing-0 text-sm;
-  }
-
-  [data-streamdown='table-header'] {
-    @apply border-b border-separator/50 bg-transparent;
-  }
-
-  [data-streamdown='table-header-cell'] {
-    @apply relative bg-surface-secondary px-4 py-2.5 text-left text-xs font-medium whitespace-nowrap text-muted;
-  }
-
-  [data-streamdown='table-header-cell']::after {
-    content: '';
-    @apply pointer-events-none absolute top-1/2 right-0 h-4 w-px -translate-y-1/2 bg-separator;
-  }
-
-  [data-streamdown='table-header-cell']:last-child::after {
-    content: none;
-  }
-
-  [data-streamdown='table-body'] {
-    @apply divide-y-0;
-  }
-
-  [data-streamdown='table-cell'] {
-    @apply h-full border-b border-separator/50 bg-surface px-4 py-3 align-middle text-sm text-foreground;
-  }
-
-  [data-streamdown='table-body']
-    > [data-streamdown='table-row']:last-child
-    > [data-streamdown='table-cell'] {
-    @apply border-b-0;
-  }
-
-  @media (hover: hover) {
-    [data-streamdown='table-body']
-      > [data-streamdown='table-row']:hover
-      > [data-streamdown='table-cell'] {
-      @apply bg-surface/40;
-    }
   }
 
   /* Fullscreen table overlay should stay interactive, while the top action bar can act as a drag handle. */
@@ -333,12 +215,5 @@
     @apply hover:bg-transparent!;
     -webkit-app-region: no-drag;
     app-region: no-drag;
-  }
-}
-
-@layer base {
-  html,
-  body {
-    @apply bg-secondary/60;
   }
 }

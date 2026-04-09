@@ -1,18 +1,29 @@
-'use client';
+"use client";
 
-import { Tooltip, TooltipContent, TooltipTrigger } from '@heroui/react';
-import { Button } from '@renderer/components/ai-elements/button';
-import { Separator } from '@renderer/components/ui/separator';
-import { cn } from '@renderer/lib/utils';
-import type { LucideProps } from 'lucide-react';
-import { BookmarkIcon } from 'lucide-react';
-import type { ComponentProps, HTMLAttributes } from 'react';
+import { Button } from "@renderer/components/ui/button";
+import { Separator } from "@renderer/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@renderer/components/ui/tooltip";
+import { cn } from "@renderer/lib/utils";
+import type { LucideProps } from "lucide-react";
+import { BookmarkIcon } from "lucide-react";
+import type { ComponentProps, HTMLAttributes } from "react";
 
 export type CheckpointProps = HTMLAttributes<HTMLDivElement>;
 
-export const Checkpoint = ({ className, children, ...props }: CheckpointProps) => (
+export const Checkpoint = ({
+  className,
+  children,
+  ...props
+}: CheckpointProps) => (
   <div
-    className={cn('flex items-center gap-0.5 overflow-hidden text-muted-foreground', className)}
+    className={cn(
+      "flex items-center gap-0.5 overflow-hidden text-muted-foreground",
+      className
+    )}
     {...props}
   >
     {children}
@@ -22,8 +33,14 @@ export const Checkpoint = ({ className, children, ...props }: CheckpointProps) =
 
 export type CheckpointIconProps = LucideProps;
 
-export const CheckpointIcon = ({ className, children, ...props }: CheckpointIconProps) =>
-  children ?? <BookmarkIcon className={cn('size-4 shrink-0', className)} {...props} />;
+export const CheckpointIcon = ({
+  className,
+  children,
+  ...props
+}: CheckpointIconProps) =>
+  children ?? (
+    <BookmarkIcon className={cn("size-4 shrink-0", className)} {...props} />
+  );
 
 export type CheckpointTriggerProps = ComponentProps<typeof Button> & {
   tooltip?: string;
@@ -31,22 +48,24 @@ export type CheckpointTriggerProps = ComponentProps<typeof Button> & {
 
 export const CheckpointTrigger = ({
   children,
-  variant = 'ghost',
-  size = 'sm',
+  variant = "ghost",
+  size = "sm",
   tooltip,
   ...props
 }: CheckpointTriggerProps) =>
   tooltip ? (
     <Tooltip>
-      <TooltipTrigger>
-        <Button size={size} type='button' variant={variant} {...props}>
+      <TooltipTrigger asChild>
+        <Button size={size} type="button" variant={variant} {...props}>
           {children}
         </Button>
       </TooltipTrigger>
-      <TooltipContent placement='bottom start'>{tooltip}</TooltipContent>
+      <TooltipContent align="start" side="bottom">
+        {tooltip}
+      </TooltipContent>
     </Tooltip>
   ) : (
-    <Button size={size} type='button' variant={variant} {...props}>
+    <Button size={size} type="button" variant={variant} {...props}>
       {children}
     </Button>
   );

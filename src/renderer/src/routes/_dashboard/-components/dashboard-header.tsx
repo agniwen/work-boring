@@ -1,38 +1,27 @@
-import { Button } from '@heroui/react';
-import { sidebarOpenAtom, sidebarResizingAtom, sidebarWidthAtom } from '@renderer/atom/app';
+import { SidebarTrigger, useSidebar } from '@renderer/components/ui/sidebar';
 import { cn } from '@renderer/lib/utils';
-import { useAtom, useAtomValue } from 'jotai';
-import { PanelLeft, PanelLeftClose } from 'lucide-react';
 
 import { DashboardHeaderEndTarget, DashboardHeaderStartTarget } from './dashboard-header-portal';
 
 export function DashboardHeader() {
-  const [sidebarOpen, setSidebarOpen] = useAtom(sidebarOpenAtom);
-  const [sidebarResizing] = useAtom(sidebarResizingAtom);
-  const sidebarWidth = useAtomValue(sidebarWidthAtom);
-  function handleToggleSidebar() {
-    setSidebarOpen(!sidebarOpen);
-  }
+  const { open, width, isResizing } = useSidebar();
+
   return (
     <div className='drag-region fixed top-0 left-0 z-20 h-11 w-full'>
       <div className='flex items-center border-b border-border/80 px-4 pl-24'>
         <div className='drag-region' style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <Button
-            variant='ghost'
+          <SidebarTrigger
             className='cursor-default'
-            onClick={handleToggleSidebar}
             style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-          >
-            {sidebarOpen ? <PanelLeftClose /> : <PanelLeft />}
-          </Button>
+          />
         </div>
         <div
           className={cn(
             'dashboard-layout-header flex h-11 w-full flex-1 items-center',
-            !sidebarResizing && 'transition-[padding]',
+            !isResizing && 'transition-[padding] duration-200 ease-linear',
           )}
           style={{
-            paddingLeft: sidebarOpen ? `${sidebarWidth - 120}px` : '32px',
+            paddingLeft: open ? `${width - 120}px` : '32px',
             willChange: 'padding-left',
           }}
         >
