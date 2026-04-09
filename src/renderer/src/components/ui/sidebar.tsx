@@ -715,7 +715,7 @@ function SidebarResizeHandle({ className, ...props }: React.ComponentProps<'butt
       aria-label='Resize Sidebar'
       tabIndex={-1}
       className={cn(
-        'absolute inset-y-0 right-0 z-20 w-1 cursor-col-resize border-r bg-transparent',
+        'absolute inset-y-0 right-0 z-20 w-1 cursor-col-resize border-r border-border/80 bg-transparent',
         className,
       )}
       onMouseDown={handleMouseDown}
