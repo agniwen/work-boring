@@ -46,17 +46,17 @@ export function AppSidebar() {
       {/* Spacer for the fixed header / Electron traffic-light buttons */}
       <SidebarHeader className='h-11 p-0' />
 
-      <SidebarContent>
+      <SidebarContent className='text-foreground/80'>
         <SidebarGroup>
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className='space-y-0.5'>
               {NAV_ITEMS.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
                     isActive={selectedKey === item.id}
                     tooltip={item.label}
                     onClick={() => navigate({ to: item.id })}
-                    className='cursor-default'
+                    className='cursor-default text-foreground/80!'
                   >
                     <item.icon size={16} />
                     <span>{item.label}</span>

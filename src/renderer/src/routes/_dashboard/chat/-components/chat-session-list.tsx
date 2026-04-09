@@ -72,11 +72,9 @@ export const ChatSessionList = memo(function ChatSessionList({
   return (
     <div className='flex h-full min-h-0 flex-col'>
       <SidebarGroup className='p-0'>
-        <SidebarGroupLabel className='px-3'>
+        <SidebarGroupLabel className='pl-1'>
           Sessions
-          <span className='ml-1 text-sidebar-foreground/40'>
-            {sessions?.length || 0}
-          </span>
+          <span className='ml-1 text-sidebar-foreground/40'>{sessions?.length || 0}</span>
         </SidebarGroupLabel>
         <Button
           aria-label='New session'
@@ -84,14 +82,14 @@ export const ChatSessionList = memo(function ChatSessionList({
           onClick={onCreateSession}
           size='icon-sm'
           variant='ghost'
-          className='absolute top-1/2 right-2 -translate-y-1/2 cursor-default'
+          className='absolute top-1/2 right-0 -translate-y-1/2 cursor-default'
         >
           <Plus />
         </Button>
       </SidebarGroup>
 
-      <div className='min-h-0 flex-1 overflow-auto px-2 py-0.5'>
-        <SidebarMenu>
+      <div className='min-h-0 flex-1 overflow-auto px-0 py-0.5'>
+        <SidebarMenu className='space-y-0.5'>
           {sessions?.map((session) => (
             <SidebarMenuItem key={session.id}>
               <SidebarMenuButton
@@ -100,10 +98,7 @@ export const ChatSessionList = memo(function ChatSessionList({
                 size='sm'
                 className='cursor-default'
               >
-                <Link
-                  params={{ sessionId: session.id }}
-                  to='/chat/{-$sessionId}'
-                >
+                <Link params={{ sessionId: session.id }} to='/chat/{-$sessionId}'>
                   <span className='truncate'>{session.title}</span>
                 </Link>
               </SidebarMenuButton>

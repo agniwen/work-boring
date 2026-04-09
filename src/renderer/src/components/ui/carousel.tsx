@@ -1,3 +1,5 @@
+"use client"
+
 import * as React from "react"
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
@@ -5,8 +7,7 @@ import useEmblaCarousel, {
 
 import { cn } from "@renderer/lib/utils"
 import { Button } from "@renderer/components/ui/button"
-import { HugeiconsIcon } from "@hugeicons/react"
-import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons"
+import { CaretLeftIcon, CaretRightIcon } from "@phosphor-icons/react"
 
 type CarouselApi = UseEmblaCarouselType[1]
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>
@@ -194,7 +195,7 @@ function CarouselPrevious({
       onClick={scrollPrev}
       {...props}
     >
-      <HugeiconsIcon icon={ArrowLeft01Icon} strokeWidth={2} />
+      <CaretLeftIcon />
       <span className="sr-only">Previous slide</span>
     </Button>
   )
@@ -224,7 +225,7 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <HugeiconsIcon icon={ArrowRight01Icon} strokeWidth={2} />
+      <CaretRightIcon />
       <span className="sr-only">Next slide</span>
     </Button>
   )
