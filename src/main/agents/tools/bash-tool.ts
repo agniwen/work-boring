@@ -80,18 +80,8 @@ function assertSafeCommand(command: string) {
 
 export function createBashTool(context: WorkspaceToolContext) {
   return tool({
-    description: [
+    description:
       'Run a bash command inside the workspace and return stdout, stderr, exit code, and timeout information.',
-      '',
-      'IMPORTANT: This tool is for terminal operations like git, npm/pnpm, docker, build scripts, tests, and one-off CLIs. DO NOT use it for file operations (reading, writing, editing, searching, listing, or finding files). Use the specialized tools instead:',
-      '- File-name pattern search: use the `glob` tool (NOT `find`, `ls -R`, or shelling out to `fd`).',
-      '- Directory listing: use the `list` tool (NOT `ls`, `tree`, or `find -type d`).',
-      '- Content search: use the `grep` tool (NOT shell `grep`/`rg`).',
-      '- Reading files: use the `read` tool (NOT `cat`/`head`/`tail`/`sed`).',
-      '- Writing or editing files: use the `write` tool (NOT `echo >`/heredocs/`sed -i`).',
-      '',
-      'Reach for bash only when no dedicated tool fits — for example running tests, linters, git commands, package managers, or code generators.',
-    ].join('\n'),
     inputSchema: z.object({
       command: z.string().min(1).describe('Bash command to execute.'),
       cwd: z
