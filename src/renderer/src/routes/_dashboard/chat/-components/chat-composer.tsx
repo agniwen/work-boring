@@ -31,7 +31,7 @@ export function ChatComposer({
 
   return (
     <div className='mx-auto w-full max-w-4xl px-1.5 pb-1'>
-      <PromptInput className='rounded-3xl border border-border/60' onSubmit={onSubmit}>
+      <PromptInput className='rounded-3xl' onSubmit={onSubmit}>
         <PromptInputBody>
           <PromptInputTextarea
             className='pt-4'

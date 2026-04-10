@@ -153,7 +153,7 @@ function ChatWorkspaceLayout(props: {
   sidebarPending: boolean;
 }) {
   return (
-    <div className='flex h-[calc(100vh-3.25rem)] overflow-hidden'>
+    <div className='flex h-[calc(100vh-46px)] overflow-hidden pb-2 px-2'>
       <DashboardHeaderStartContent>
         <div className='flex items-center gap-2'>
           <span className='text-sm font-medium text-foreground'>{props.activeSessionTitle}</span>

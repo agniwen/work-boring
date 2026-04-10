@@ -21,7 +21,7 @@ export function DashboardHeader() {
             !isResizing && 'transition-[padding] duration-200 ease-linear',
           )}
           style={{
-            paddingLeft: open ? `${width - 120}px` : '32px',
+            paddingLeft: open ? `${width - 116}px` : '32px',
             willChange: 'padding-left',
           }}
         >
