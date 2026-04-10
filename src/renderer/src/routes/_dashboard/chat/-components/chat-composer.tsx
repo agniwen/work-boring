@@ -6,8 +6,7 @@ import {
   PromptInputTextarea,
   type PromptInputMessage,
 } from '@renderer/components/ai-elements/prompt-input';
-import { Card, CardContent } from '@renderer/components/ui/card';
-import { SendHorizonal, Square } from 'lucide-react';
+import {ArrowUpIcon ,StopIcon} from "@phosphor-icons/react"
 import { useRef } from 'react';
 
 type ChatComposerProps = {
@@ -49,7 +48,7 @@ export function ChatComposer({
                 onClick={onStop}
                 variant='ghost'
               >
-                <Square size={14} />
+                <StopIcon size={14} />
               </PromptInputButton>
             ) : (
               <PromptInputButton
@@ -59,7 +58,7 @@ export function ChatComposer({
                 type='submit'
                 variant='default'
               >
-                <SendHorizonal size={14} />
+                <ArrowUpIcon size={14} />
               </PromptInputButton>
             )}
           </div>

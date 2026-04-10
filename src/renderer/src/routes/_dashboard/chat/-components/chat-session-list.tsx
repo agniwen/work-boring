@@ -1,3 +1,4 @@
+import { PlusIcon, TrashIcon } from '@phosphor-icons/react';
 import { Button } from '@renderer/components/ui/button';
 import {
   Dialog,
@@ -16,7 +17,6 @@ import {
   SidebarMenuItem,
 } from '@renderer/components/ui/sidebar';
 import { Link } from '@tanstack/react-router';
-import { Plus, Trash2 } from 'lucide-react';
 import { memo, useState } from 'react';
 
 type ChatSessionListProps = {
@@ -71,8 +71,8 @@ export const ChatSessionList = memo(function ChatSessionList({
 
   return (
     <div className='flex h-full min-h-0 flex-col'>
-      <SidebarGroup className='p-0'>
-        <SidebarGroupLabel className='pl-1'>
+      <SidebarGroup className='flex flex-row items-center justify-between pr-0'>
+        <SidebarGroupLabel className='p-0'>
           Sessions
           <span className='ml-1 text-sidebar-foreground/40'>{sessions?.length || 0}</span>
         </SidebarGroupLabel>
@@ -82,9 +82,9 @@ export const ChatSessionList = memo(function ChatSessionList({
           onClick={onCreateSession}
           size='icon-sm'
           variant='ghost'
-          className='absolute top-1/2 right-0 -translate-y-1/2 cursor-default'
+          className='cursor-default'
         >
-          <Plus />
+          <PlusIcon />
         </Button>
       </SidebarGroup>
 
@@ -109,7 +109,7 @@ export const ChatSessionList = memo(function ChatSessionList({
                 onClick={() => handleDeleteRequest(session)}
                 title={`Delete ${session.title}`}
               >
-                <Trash2 />
+                <TrashIcon />
                 <span className='sr-only'>Delete</span>
               </SidebarMenuAction>
             </SidebarMenuItem>

@@ -1,5 +1,24 @@
+import { createRequire } from 'node:module';
+
 import { createDeepSeek } from '@ai-sdk/deepseek';
-import { streamText } from 'ai';
+import { streamText, wrapLanguageModel, type LanguageModelMiddleware } from 'ai';
+
+// Load @ai-sdk/devtools lazily via createRequire so:
+//   1. Vite never tries to bundle it (createRequire is opaque to the bundler).
+//   2. The whole block is dead-code-eliminated in production builds.
+//   3. It can stay in devDependencies and be absent from packaged apps.
+let devToolsMiddleware: LanguageModelMiddleware | null = null;
+if (import.meta.env.DEV) {
+  try {
+    const requireDev = createRequire(import.meta.url);
+    const mod = requireDev('@ai-sdk/devtools') as {
+      devToolsMiddleware: () => LanguageModelMiddleware;
+    };
+    devToolsMiddleware = mod.devToolsMiddleware();
+  } catch (error) {
+    console.warn('[ai-sdk devtools] not enabled:', (error as Error).message);
+  }
+}
 
 export function getAgentEnv() {
   // Accept both Electron-injected env vars and plain process env so local dev and packaged runs
@@ -35,5 +54,15 @@ export function createMainLanguageModel(): Parameters<typeof streamText>[0]['mod
   });
 
   // Build the concrete model instance lazily so startup fails with a clear credential error.
-  return provider(getMainLanguageModelName());
+  const baseModel = provider(getMainLanguageModelName());
+
+  // In dev, route every model call through the AI SDK devtools viewer
+  // (run `pnpm dlx @ai-sdk/devtools` and open http://localhost:4983).
+  if (devToolsMiddleware) {
+    return wrapLanguageModel({
+      model: baseModel,
+      middleware: devToolsMiddleware,
+    });
+  }
+  return baseModel;
 }

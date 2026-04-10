@@ -1,6 +1,9 @@
+import { ChatDotsIcon, HammerIcon, CalendarCheckIcon } from '@phosphor-icons/react';
+import { ThemeSwitcher } from '@renderer/components/features/theme-swicher';
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -10,7 +13,6 @@ import {
   SidebarResizeHandle,
 } from '@renderer/components/ui/sidebar';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Layers, MessagesSquare, Projector } from 'lucide-react';
 
 import { SidebarMiddleTarget } from './sidebar-portal';
 
@@ -18,17 +20,17 @@ const NAV_ITEMS = [
   {
     id: '/dashboard',
     label: 'Dashboard',
-    icon: Projector,
+    icon: CalendarCheckIcon,
   },
   {
     id: '/chat',
     label: 'Chat',
-    icon: MessagesSquare,
+    icon: ChatDotsIcon,
   },
   {
     id: '/skills',
     label: 'Skills',
-    icon: Layers,
+    icon: HammerIcon,
   },
 ];
 
@@ -67,13 +69,18 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Portal target: chat route injects session list here */}
+        {/* Portal target: chat route injects session list here.
+            min-h-0 + flex-1 lets it shrink so the footer always stays pinned. */}
         <SidebarGroup className='min-h-0 flex-1 overflow-hidden'>
           <SidebarGroupContent className='h-full overflow-auto'>
             <SidebarMiddleTarget />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+
+      <SidebarFooter className='px-3 py-2'>
+        <ThemeSwitcher />
+      </SidebarFooter>
 
       <SidebarResizeHandle />
     </Sidebar>

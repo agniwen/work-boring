@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { TooltipProvider } from '@renderer/components/ui/tooltip';
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router';
+import { ThemeProvider } from 'next-themes';
 
 export interface RouterAppContext {
   queryClient: QueryClient;
@@ -12,8 +13,17 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootComponent(): React.JSX.Element {
   return (
-    <TooltipProvider>
-      <Outlet />
-    </TooltipProvider>
+    // attribute="class" matches the Tailwind v4 `@custom-variant dark (&:is(.dark *))`
+    // setup in global.css — next-themes toggles `.dark` on <html> for us.
+    <ThemeProvider
+      attribute='class'
+      defaultTheme='system'
+      enableSystem
+      disableTransitionOnChange
+    >
+      <TooltipProvider>
+        <Outlet />
+      </TooltipProvider>
+    </ThemeProvider>
   );
 }

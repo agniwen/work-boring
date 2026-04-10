@@ -4,7 +4,7 @@ import { cn } from '@renderer/lib/utils';
 import { DashboardHeaderEndTarget, DashboardHeaderStartTarget } from './dashboard-header-portal';
 
 export function DashboardHeader() {
-  const { open, width, isResizing } = useSidebar();
+  const { open, width, isResizing, isMobile } = useSidebar();
 
   return (
     <div className='drag-region fixed top-0 left-0 z-20 h-11 w-full'>
@@ -21,7 +21,7 @@ export function DashboardHeader() {
             !isResizing && 'transition-[padding] duration-200 ease-linear',
           )}
           style={{
-            paddingLeft: open ? `${width - 116}px` : '32px',
+            paddingLeft: isMobile ? '8px' : open ? `${width - 116}px` : '32px',
             willChange: 'padding-left',
           }}
         >

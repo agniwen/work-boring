@@ -156,6 +156,80 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Native-app feel: disable text selection globally. */
+  html,
+  body {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+    background: var(--background);
+  }
+
+  /* Re-enable text selection where it actually makes sense:
+     form fields, content-editable surfaces, and any opt-in surface
+     (e.g. chat messages) marked with .chat-selectable. */
+  input,
+  textarea,
+  select,
+  [contenteditable='true'],
+  [contenteditable='']:not([contenteditable='false']),
+  .chat-selectable,
+  .chat-selectable * {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Native apps use the arrow cursor on clickable controls, not a hand. */
+  button,
+  a,
+  summary,
+  label,
+  select,
+  [role='button'],
+  [role='link'],
+  [role='tab'],
+  [role='menuitem'],
+  [role='option'],
+  [data-slot='button'] {
+    cursor: default;
+  }
+
+  /* Anywhere text is selectable, show the I-beam cursor. */
+  input:not([type='button']):not([type='submit']):not([type='reset']):not(
+      [type='checkbox']
+    ):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+  textarea,
+  [contenteditable='true'],
+  .chat-selectable,
+  .chat-selectable * {
+    cursor: text;
+  }
+
+  /* But interactive controls inside selectable regions keep the arrow cursor. */
+  .chat-selectable button,
+  .chat-selectable a,
+  .chat-selectable summary,
+  .chat-selectable label,
+  .chat-selectable select,
+  .chat-selectable [role='button'],
+  .chat-selectable [role='link'],
+  .chat-selectable [role='tab'],
+  .chat-selectable [role='menuitem'],
+  .chat-selectable [role='option'],
+  .chat-selectable [data-slot='button'] {
+    cursor: default;
+  }
+
+  /* Block native drag-and-drop for images and links — feels more app-like. */
+  img,
+  a {
+    -webkit-user-drag: none;
+    user-drag: none;
+  }
+  img {
+    -webkit-touch-callout: none;
+  }
 }
 
 /* Electron 窗口拖动工具类 */
