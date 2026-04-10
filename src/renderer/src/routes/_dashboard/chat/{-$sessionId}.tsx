@@ -203,7 +203,7 @@ function ChatWorkspaceRuntime(props: {
   const { activeSessionId, onConsumePendingDraft, pendingDraftMessage } = props;
   const pendingDraftTriggeredRef = useRef(false);
   const wasStreamingRef = useRef(false);
-  const { addToolApprovalResponse, messages, status, sendMessage, stop } =
+  const { addToolApprovalResponse, messages, regenerate, status, sendMessage, stop } =
     useChat<WorkspaceAgentUIMessage>({
       id: props.activeSessionId ?? 'new-chat',
       messages: props.initialMessages,
@@ -275,6 +275,9 @@ function ChatWorkspaceRuntime(props: {
       <ChatMessagesPane
         isStreaming={isStreaming}
         messages={messages}
+        onRegenerate={(messageId) => {
+          void regenerate({ messageId });
+        }}
         onRespondToApproval={handleApprovalResponse}
       />
 
