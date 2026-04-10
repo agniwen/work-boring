@@ -1,3 +1,4 @@
+import { ChatsIcon } from '@phosphor-icons/react';
 import {
   Conversation,
   ConversationContent,
@@ -5,7 +6,6 @@ import {
   ConversationScrollButton,
 } from '@renderer/components/ai-elements/conversation';
 import { Message, MessageContent } from '@renderer/components/ai-elements/message';
-import { MessagesSquare } from 'lucide-react';
 
 import type { WorkspaceAgentUIMessage } from '../../../../../../main/agents';
 import { ChatMessagePart } from './chat-message-part';
@@ -26,10 +26,10 @@ export function ChatMessagesPane({
       <ConversationContent className='mx-auto w-full max-w-4xl'>
         {messages.length === 0 ? (
           <ConversationEmptyState
-            className='mt-24 min-h-full'
-            description='Send a message to get started'
-            icon={<MessagesSquare size={32} />}
-            title='Start a conversation'
+            className='mt-24 min-h-full opacity-45'
+            description='从发送第一条信息开始'
+            icon={<ChatsIcon size={48} />}
+            title='无聊工作'
           />
         ) : (
           messages.map((message) => (
