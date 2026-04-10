@@ -16,6 +16,7 @@ import { useState } from 'react';
 
 import type { WorkspaceAgentUIMessage } from '../../../../../../main/agents';
 import { ChatMessagePart } from './chat-message-part';
+import { computeSkippedPartIndices } from './chat-tool-task';
 
 type ChatMessagesPaneProps = {
   isStreaming: boolean;
@@ -79,22 +80,29 @@ export function ChatMessagesPane({
             const canRegenerate = message.id === lastMessageId && !isStreaming;
             const showActions =
               message.role === 'assistant' && !isStreaming && messageText.length > 0;
+            // Hide stale todoWrite snapshots so only the latest plan within this message renders.
+            const skippedPartIndices = computeSkippedPartIndices(message.parts);
 
             return (
               <div
-                className='chat-selectable w-full border-b border-border/60 py-6 first:pt-0 last:border-b-0 last:pb-0'
+                className='chat-selectable w-full border-b border-border/60 pb-6 last:border-b-0 last:pb-0'
                 key={message.id}
               >
                 <Message from={message.role}>
                   <MessageContent>
-                    {message.parts.map((part, index) => (
-                      <ChatMessagePart
-                        isStreaming={isStreaming && index === message.parts.length - 1}
-                        key={`${message.id}:${index}`}
-                        onRespondToApproval={onRespondToApproval}
-                        part={part}
-                      />
-                    ))}
+                    {message.parts.map((part, index) => {
+                      if (skippedPartIndices.has(index)) {
+                        return null;
+                      }
+                      return (
+                        <ChatMessagePart
+                          isStreaming={isStreaming && index === message.parts.length - 1}
+                          key={`${message.id}:${index}`}
+                          onRespondToApproval={onRespondToApproval}
+                          part={part}
+                        />
+                      );
+                    })}
                   </MessageContent>
                   {showActions ? (
                     <MessageActions className='-mt-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100'>

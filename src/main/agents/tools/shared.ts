@@ -6,12 +6,39 @@ export interface WorkspaceToolContext {
 }
 
 export const DEFAULT_BASH_TIMEOUT_MS = 20_000;
+export const DEFAULT_GLOB_MAX_RESULTS = 100;
 export const DEFAULT_GREP_MAX_RESULTS = 50;
+export const DEFAULT_LIST_MAX_RESULTS = 200;
 export const DEFAULT_READ_MAX_CHARACTERS = 20_000;
 export const DEFAULT_READ_WINDOW_LINES = 200;
 export const MAX_BASH_TIMEOUT_MS = 60_000;
+export const MAX_GLOB_MAX_RESULTS = 500;
 export const MAX_GREP_RESULTS = 200;
+export const MAX_LIST_MAX_RESULTS = 1_000;
 export const MAX_TOOL_OUTPUT_CHARACTERS = 12_000;
+
+// Directories skipped by default when listing files. Mirrors opencode's list tool so large vendored
+// trees do not flood the agent's context.
+export const DEFAULT_LIST_IGNORE_PATTERNS = [
+  'node_modules/',
+  '.git/',
+  'dist/',
+  'build/',
+  'out/',
+  'target/',
+  'vendor/',
+  '.next/',
+  '.turbo/',
+  '.cache/',
+  'coverage/',
+  '.venv/',
+  'venv/',
+  '__pycache__/',
+  '.idea/',
+  '.vscode/',
+  'tmp/',
+  'temp/',
+];
 
 export interface ResolvedToolPath {
   absolutePath: string;

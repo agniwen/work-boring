@@ -9,6 +9,7 @@ import { Button } from '@renderer/components/ui/button';
 import { isToolUIPart } from 'ai';
 
 import type { WorkspaceAgentUIMessage } from '../../../../../../main/agents';
+import { renderToolAsTask } from './chat-tool-task';
 import { ToolSummary } from './tool-summary';
 
 export type ChatMessagePartProps = {
@@ -33,6 +34,13 @@ export function ChatMessagePart({ isStreaming, onRespondToApproval, part }: Chat
 
   if (!isToolUIPart(part)) {
     return null;
+  }
+
+  // Retrieval-style tools (read/grep/loadSkill) get a compact Task renderer.
+  // Tools needing approval fall through so the Tool card's approval UX still renders.
+  const taskNode = renderToolAsTask(part);
+  if (taskNode) {
+    return taskNode;
   }
 
   const approval = 'approval' in part ? part.approval : undefined;
