@@ -1,3 +1,4 @@
+import { ArrowUpIcon, StopIcon } from '@phosphor-icons/react';
 import {
   PromptInput,
   PromptInputBody,
@@ -6,7 +7,6 @@ import {
   PromptInputTextarea,
   type PromptInputMessage,
 } from '@renderer/components/ai-elements/prompt-input';
-import {ArrowUpIcon ,StopIcon} from "@phosphor-icons/react"
 import { useRef } from 'react';
 
 type ChatComposerProps = {

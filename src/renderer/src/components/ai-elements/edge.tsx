@@ -1,11 +1,11 @@
-import type { EdgeProps, InternalNode, Node } from "@xyflow/react";
+import type { EdgeProps, InternalNode, Node } from '@xyflow/react';
 import {
   BaseEdge,
   getBezierPath,
   getSimpleBezierPath,
   Position,
   useInternalNode,
-} from "@xyflow/react";
+} from '@xyflow/react';
 
 const Temporary = ({
   id,
@@ -27,25 +27,22 @@ const Temporary = ({
 
   return (
     <BaseEdge
-      className="stroke-1 stroke-ring"
+      className='stroke-ring stroke-1'
       id={id}
       path={edgePath}
       style={{
-        strokeDasharray: "5, 5",
+        strokeDasharray: '5, 5',
       }}
     />
   );
 };
 
-const getHandleCoordsByPosition = (
-  node: InternalNode<Node>,
-  handlePosition: Position
-) => {
+const getHandleCoordsByPosition = (node: InternalNode, handlePosition: Position) => {
   // Choose the handle type based on position - Left is for target, Right is for source
-  const handleType = handlePosition === Position.Left ? "target" : "source";
+  const handleType = handlePosition === Position.Left ? 'target' : 'source';
 
   const handle = node.internals.handleBounds?.[handleType]?.find(
-    (h) => h.position === handlePosition
+    (h) => h.position === handlePosition,
   );
 
   if (!handle) {
@@ -86,10 +83,7 @@ const getHandleCoordsByPosition = (
   return [x, y] as const;
 };
 
-const getEdgeParams = (
-  source: InternalNode<Node>,
-  target: InternalNode<Node>
-) => {
+const getEdgeParams = (source: InternalNode, target: InternalNode) => {
   const sourcePos = Position.Right;
   const [sx, sy] = getHandleCoordsByPosition(source, sourcePos);
   const targetPos = Position.Left;
@@ -113,10 +107,7 @@ const Animated = ({ id, source, target, markerEnd, style }: EdgeProps) => {
     return null;
   }
 
-  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(
-    sourceNode,
-    targetNode
-  );
+  const { sx, sy, tx, ty, sourcePos, targetPos } = getEdgeParams(sourceNode, targetNode);
 
   const [edgePath] = getBezierPath({
     sourcePosition: sourcePos,
@@ -130,8 +121,8 @@ const Animated = ({ id, source, target, markerEnd, style }: EdgeProps) => {
   return (
     <>
       <BaseEdge id={id} markerEnd={markerEnd} path={edgePath} style={style} />
-      <circle fill="var(--primary)" r="4">
-        <animateMotion dur="2s" path={edgePath} repeatCount="indefinite" />
+      <circle fill='var(--primary)' r='4'>
+        <animateMotion dur='2s' path={edgePath} repeatCount='indefinite' />
       </circle>
     </>
   );

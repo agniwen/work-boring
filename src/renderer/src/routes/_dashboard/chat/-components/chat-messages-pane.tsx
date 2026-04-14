@@ -15,13 +15,15 @@ import {
 import { useState } from 'react';
 
 import type { WorkspaceAgentUIMessage } from '../../../../../../main/agents';
-import { ChatMessagePart } from './chat-message-part';
+import { ChatMessagePart, type AskUserQuestionAnswerPayload } from './chat-message-part';
 
 type ChatMessagesPaneProps = {
   isStreaming: boolean;
   messages: WorkspaceAgentUIMessage[];
   onRegenerate: (messageId: string) => void;
   onRespondToApproval: ((approvalId: string, approved: boolean) => void) | null;
+  onAnswerQuestion?: (payload: AskUserQuestionAnswerPayload) => void;
+  onDeclineQuestion?: (toolCallId: string) => void;
 };
 
 // Flatten a message's parts into a plain-text string for clipboard copy.
@@ -61,6 +63,8 @@ export function ChatMessagesPane({
   messages,
   onRegenerate,
   onRespondToApproval,
+  onAnswerQuestion,
+  onDeclineQuestion,
 }: ChatMessagesPaneProps) {
   const lastMessageId = messages.at(-1)?.id;
   return (
@@ -91,6 +95,8 @@ export function ChatMessagesPane({
                       <ChatMessagePart
                         isStreaming={isStreaming && index === message.parts.length - 1}
                         key={`${message.id}:${index}`}
+                        onAnswerQuestion={onAnswerQuestion}
+                        onDeclineQuestion={onDeclineQuestion}
                         onRespondToApproval={onRespondToApproval}
                         part={part}
                       />
@@ -100,10 +106,7 @@ export function ChatMessagesPane({
                     <MessageActions className='-mt-1 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100'>
                       <CopyMessageAction text={messageText} />
                       {canRegenerate ? (
-                        <MessageAction
-                          onClick={() => onRegenerate(message.id)}
-                          tooltip='重新生成'
-                        >
+                        <MessageAction onClick={() => onRegenerate(message.id)} tooltip='重新生成'>
                           <ArrowClockwiseIcon size={14} />
                         </MessageAction>
                       ) : null}

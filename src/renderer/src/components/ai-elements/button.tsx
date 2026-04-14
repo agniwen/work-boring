@@ -20,8 +20,7 @@ const aiElementsButtonVariants = cva(
           'border-border bg-input/30 hover:bg-input/50 hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground',
         secondary:
           'bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground',
-        tertiary:
-          'hover:bg-muted hover:text-foreground dark:hover:bg-muted/50',
+        tertiary: 'hover:bg-muted hover:text-foreground dark:hover:bg-muted/50',
       },
       size: {
         default:
@@ -48,14 +47,7 @@ export type ButtonProps = React.ComponentProps<'button'> &
   };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  {
-    className,
-    variant = 'default',
-    size = 'default',
-    asChild = false,
-    type = 'button',
-    ...props
-  },
+  { className, variant = 'default', size = 'default', asChild = false, type = 'button', ...props },
   ref,
 ) {
   const classes = cn(aiElementsButtonVariants({ variant, size }), className);

@@ -1,4 +1,10 @@
-import { createAgentUIStream, type LanguageModelUsage } from 'ai';
+import {
+  createAgentUIStream,
+  createUIMessageStream,
+  isToolUIPart,
+  type LanguageModelUsage,
+  type UIMessageChunk,
+} from 'ai';
 
 import type { WorkspaceAgent, WorkspaceAgentUIMessage } from '../agents';
 import {
@@ -22,7 +28,10 @@ interface ChatServiceDeps {
   skillService: SkillService;
 }
 
-type AgentUIMessageStream = Awaited<ReturnType<typeof createAgentUIStream>>;
+// Safety cap on the external step loop. In practice the model almost always
+// stops earlier (either finishReason !== tool-calls, or a tool requests
+// approval / user input). This exists to catch runaway behavior.
+const MAX_AGENT_STEPS = 30;
 const DASHBOARD_DAYS = 14;
 
 export interface DashboardDailyActivity {
@@ -154,6 +163,31 @@ function getUsageTokenCount(metadata: PersistedMessageMetadata | null, fallbackT
   return estimateTokensFromText(fallbackText);
 }
 
+// Detect whether the assistant turn should pause and wait for the user before
+// the outer loop starts another step. This mirrors open-agents'
+// `shouldPauseForToolInteraction`: we stop if any tool is awaiting approval or
+// is a client-side tool (no execute, state stays at input-available).
+function shouldPauseForToolInteraction(parts: WorkspaceAgentUIMessage['parts']) {
+  for (const part of parts) {
+    if (!isToolUIPart(part)) {
+      continue;
+    }
+
+    if (part.state === 'approval-requested') {
+      return true;
+    }
+
+    if (part.state === 'input-available') {
+      // A tool call with input-available AND no later output means the AI SDK
+      // yielded control because the tool has no server-side execute (e.g.
+      // askUserQuestion). The UI will collect the answer and resubmit.
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export class ChatService {
   constructor(private readonly deps: ChatServiceDeps) {}
 
@@ -253,7 +287,7 @@ export class ChatService {
     };
   }
 
-  async streamChat(input: StreamChatInput): Promise<AgentUIMessageStream> {
+  async streamChat(input: StreamChatInput): Promise<ReadableStream<UIMessageChunk>> {
     const session = await this.deps.sessionRepository.getById(input.sessionId);
 
     if (!session) {
@@ -293,7 +327,8 @@ export class ChatService {
 
       assistantMessageId = assistantMessage.id;
     } else {
-      // Approval/tool continuations reuse the existing assistant row instead of duplicating history.
+      // Continuations (approval responses, ask-user-question answers) reuse the
+      // existing assistant row so the external loop can resume its parts.
       const assistantMessage =
         (await this.deps.messageRepository.updateMessage(lastMessage.id, {
           parts: lastMessage.parts,
@@ -313,62 +348,151 @@ export class ChatService {
 
     await this.deps.sessionRepository.touch(input.sessionId);
 
-    try {
-      let aggregatedUsage = createEmptyUsage();
+    const deps = this.deps;
+    const sessionId = input.sessionId;
+    // Reload skills at the start of this chat turn so newly added skills appear
+    // without restarting the app. This is a single fetch for the whole loop —
+    // within a turn the set does not change.
+    const { skills } = await deps.skillService.listInstalledSkills();
+    const skillOptions = skills.map((s) => ({
+      name: s.name,
+      description: s.description,
+      location: s.location,
+    }));
 
-      // Re-discover skills on each stream so new skills are picked up without restarting.
-      const { skills } = await this.deps.skillService.listInstalledSkills();
+    return createUIMessageStream<WorkspaceAgentUIMessage>({
+      originalMessages: input.messages,
+      generateId: () => assistantMessageId,
+      onError: (error) => (error instanceof Error ? error.message : 'Unknown agent stream error'),
+      // The single entry point for the entire multi-step agent turn. Each
+      // iteration runs ONE agent step (stepCountIs(1)) and then decides
+      // explicitly whether to continue, pause for the user, or terminate.
+      execute: async ({ writer }) => {
+        let aggregatedUsage = createEmptyUsage();
+        let currentMessages: WorkspaceAgentUIMessage[] = input.messages;
+        let lastAssistantResponse: WorkspaceAgentUIMessage | null = null;
+        let finalStatus: 'done' | 'aborted' | 'error' = 'done';
+        let finalErrorText: string | null = null;
 
-      return await createAgentUIStream({
-        agent: this.deps.agent,
-        uiMessages: input.messages,
-        options: {
-          skills: skills.map((s) => ({
-            name: s.name,
-            description: s.description,
-            location: s.location,
-          })),
-        },
-        // Pass original messages so AI SDK can continue the last assistant message in place after
-        // approvals instead of emitting a duplicate assistant turn.
-        originalMessages: input.messages,
-        generateMessageId: () => assistantMessageId,
-        // Record step usage in main so dashboard metrics survive renderer reloads.
-        onStepFinish: ({ usage }) => {
-          aggregatedUsage = mergeUsage(aggregatedUsage, usage);
-        },
-        onFinish: async ({ isAborted, responseMessage }) => {
-          const status = isAborted ? 'aborted' : 'done';
+        try {
+          for (let stepIndex = 0; stepIndex < MAX_AGENT_STEPS; stepIndex += 1) {
+            let stepFinishReason: string | undefined;
+            let stepAssistant: WorkspaceAgentUIMessage | undefined;
+            let stepAborted = false;
+            let stepErrorMessage: string | null = null;
 
-          await this.deps.messageRepository.updateMessage(assistantMessageId, {
-            metadata: {
-              finishedAt: Date.now(),
-              modelId: this.deps.getModelName(),
-              usage: aggregatedUsage,
-              usageSource: 'provider',
-            },
-            parts: responseMessage.parts,
-            status,
-            errorText: null,
-          });
-          await this.deps.sessionRepository.touch(input.sessionId);
-        },
-        onError: (error) => {
-          return error instanceof Error ? error.message : 'Unknown agent stream error';
-        },
-      });
-    } catch (error) {
-      const errorText = error instanceof Error ? error.message : 'Unknown chat stream error';
+            const stepStream = await createAgentUIStream<
+              { skills: typeof skillOptions; subagentModel?: unknown },
+              WorkspaceAgent['tools']
+            >({
+              agent: deps.agent,
+              uiMessages: currentMessages,
+              options: { skills: skillOptions },
+              originalMessages: currentMessages,
+              generateMessageId: () => assistantMessageId,
+              onStepFinish: ({ usage, finishReason }) => {
+                aggregatedUsage = mergeUsage(aggregatedUsage, usage);
+                stepFinishReason = finishReason;
+              },
+              onFinish: ({ isAborted, responseMessage }) => {
+                stepAborted = isAborted;
+                stepAssistant = responseMessage as WorkspaceAgentUIMessage;
+              },
+              onError: (error) => {
+                stepErrorMessage = error instanceof Error ? error.message : String(error);
+                return stepErrorMessage ?? 'Unknown agent stream error';
+              },
+            });
 
-      await this.deps.messageRepository.updateMessage(assistantMessageId, {
-        metadata: null,
-        parts: [],
-        status: 'error',
-        errorText,
-      });
-      await this.deps.sessionRepository.touch(input.sessionId);
+            // Forward every UI chunk from this step into the outer writer. We
+            // iterate explicitly (rather than writer.merge) so the `for await`
+            // only resolves once this step's stream closes — at which point
+            // onFinish has already fired and we can inspect the step result
+            // before starting the next iteration.
+            for await (const chunk of stepStream) {
+              writer.write(chunk);
+            }
 
-      throw error;
-    }
+            if (stepErrorMessage) {
+              finalStatus = 'error';
+              finalErrorText = stepErrorMessage;
+              break;
+            }
+
+            if (stepAborted) {
+              finalStatus = 'aborted';
+              if (stepAssistant) lastAssistantResponse = stepAssistant;
+              break;
+            }
+
+            if (stepAssistant) {
+              lastAssistantResponse = stepAssistant;
+
+              // Persist this step's progress. The same assistant row accumulates
+              // parts across steps because the AI SDK keeps the id stable via
+              // generateMessageId.
+              await deps.messageRepository.updateMessage(assistantMessageId, {
+                metadata: {
+                  finishedAt: Date.now(),
+                  modelId: deps.getModelName(),
+                  usage: aggregatedUsage,
+                  usageSource: 'provider',
+                },
+                parts: stepAssistant.parts,
+                status: 'streaming',
+                errorText: null,
+              });
+            }
+
+            // Continuation decision — mirrors open-agents' chat.ts:
+            //   - tool-calls + no human pause → loop again
+            //   - anything else (stop / length / content-filter / error)    → done
+            //   - awaiting approval / ask-user-question                      → pause
+            const assistantParts = stepAssistant?.parts ?? lastAssistantResponse?.parts ?? [];
+            const shouldContinue =
+              stepFinishReason === 'tool-calls' && !shouldPauseForToolInteraction(assistantParts);
+
+            if (!shouldContinue) {
+              break;
+            }
+
+            // Rebuild the message list for the next step: replace the previous
+            // trailing message (placeholder/user/assistant-in-progress) with the
+            // updated assistant so the model sees its own prior tool calls and
+            // results and knows to continue the turn.
+            if (stepAssistant) {
+              const rebuilt = currentMessages.filter(
+                (message) => message.role !== 'assistant' || message.id !== assistantMessageId,
+              );
+              currentMessages = [...rebuilt, stepAssistant];
+            }
+          }
+        } catch (error) {
+          finalStatus = 'error';
+          finalErrorText = error instanceof Error ? error.message : 'Unknown chat stream error';
+        }
+
+        // Finalize the persisted assistant row. If the loop paused because a
+        // tool needs the user (approval/ask-user-question), we still record
+        // status 'streaming' so the next request continues the same row.
+        const paused =
+          finalStatus === 'done' &&
+          lastAssistantResponse !== null &&
+          shouldPauseForToolInteraction(lastAssistantResponse.parts);
+
+        await deps.messageRepository.updateMessage(assistantMessageId, {
+          metadata: {
+            finishedAt: Date.now(),
+            modelId: deps.getModelName(),
+            usage: aggregatedUsage,
+            usageSource: 'provider',
+          },
+          parts: lastAssistantResponse?.parts ?? [],
+          status: paused ? 'streaming' : finalStatus,
+          errorText: finalErrorText,
+        });
+        await deps.sessionRepository.touch(sessionId);
+      },
+    });
   }
 }

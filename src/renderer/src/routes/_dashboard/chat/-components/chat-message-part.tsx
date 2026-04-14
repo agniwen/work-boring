@@ -4,20 +4,75 @@ import {
   ReasoningContent,
   ReasoningTrigger,
 } from '@renderer/components/ai-elements/reasoning';
-import { Tool, ToolContent, ToolHeader, ToolOutput } from '@renderer/components/ai-elements/tool';
-import { Button } from '@renderer/components/ui/button';
-import { isToolUIPart } from 'ai';
+import {
+  extractRenderState,
+  TOOL_RENDERERS,
+  ToolLayout,
+  type ToolRenderState,
+} from '@renderer/components/tool-call';
+import { isToolUIPart, type DynamicToolUIPart, type ToolUIPart } from 'ai';
 
 import type { WorkspaceAgentUIMessage } from '../../../../../../main/agents';
-import { ToolSummary } from './tool-summary';
+import { AskUserQuestionCard } from './ask-user-question-card';
+import { TaskCard } from './task-card';
+import { TodoCard } from './todo-card';
+
+export type AskUserQuestionAnswerPayload = {
+  toolCallId: string;
+  answers: Record<string, string | string[]>;
+};
 
 export type ChatMessagePartProps = {
   isStreaming: boolean;
   onRespondToApproval: ((approvalId: string, approved: boolean) => void) | null;
+  onAnswerQuestion?: (payload: AskUserQuestionAnswerPayload) => void;
+  onDeclineQuestion?: (toolCallId: string) => void;
   part: WorkspaceAgentUIMessage['parts'][number];
 };
 
-export function ChatMessagePart({ isStreaming, onRespondToApproval, part }: ChatMessagePartProps) {
+// Fallback renderer for tool types without a dedicated renderer (e.g. loadSkill,
+// dynamic-tool). Uses ToolLayout with a JSON-dumped expanded view so we still
+// get consistent styling and approval wiring.
+function GenericToolRenderer({
+  part,
+  state,
+  toolName,
+  onApprove,
+  onDeny,
+}: {
+  part: ToolUIPart | DynamicToolUIPart;
+  state: ToolRenderState;
+  toolName: string;
+  onApprove?: (id: string) => void;
+  onDeny?: (id: string, reason?: string) => void;
+}) {
+  const output = part.state === 'output-available' ? part.output : undefined;
+  const expandedContent =
+    output !== undefined ? (
+      <pre className='max-h-64 overflow-auto rounded-md border border-border bg-muted/50 p-3 font-mono text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground'>
+        {typeof output === 'string' ? output : JSON.stringify(output, null, 2)}
+      </pre>
+    ) : undefined;
+
+  return (
+    <ToolLayout
+      expandedContent={expandedContent}
+      name={toolName}
+      onApprove={onApprove}
+      onDeny={onDeny}
+      state={state}
+      summary=''
+    />
+  );
+}
+
+export function ChatMessagePart({
+  isStreaming,
+  onRespondToApproval,
+  onAnswerQuestion,
+  onDeclineQuestion,
+  part,
+}: ChatMessagePartProps) {
   if (part.type === 'text') {
     return <MessageResponse isAnimating={isStreaming}>{part.text}</MessageResponse>;
   }
@@ -35,76 +90,72 @@ export function ChatMessagePart({ isStreaming, onRespondToApproval, part }: Chat
     return null;
   }
 
-  const approval = 'approval' in part ? part.approval : undefined;
-  const summaryContent = ToolSummary({ part });
-  const hidesInlineResult = summaryContent !== null;
+  // Specialized tool cards that intentionally bypass the generic ToolLayout.
 
-  // Keep approval decisions visible on the card so users can act without opening tool details.
-  const approvalContent =
-    approval && onRespondToApproval ? (
-      <div className='flex flex-col gap-2 rounded-md bg-muted/5 px-2.5 py-2'>
-        <div className='space-y-1'>
-          <p className='text-xs leading-4.5 font-medium text-foreground/88'>
-            This tool needs approval before it can access a path outside the workspace.
-          </p>
-          {part.state === 'approval-responded' && approval.approved ? (
-            <p className='text-xs leading-4.5 text-green-600/90'>
-              Approval granted. Continuing execution.
-            </p>
-          ) : null}
-          {(part.state === 'approval-responded' || part.state === 'output-denied') &&
-          approval.approved === false ? (
-            <p className='text-xs leading-4.5 text-orange-600/90'>Approval denied.</p>
-          ) : null}
-        </div>
-        {part.state === 'approval-requested' ? (
-          <div className='flex flex-wrap items-center gap-2'>
-            <Button
-              size='sm'
-              type='button'
-              variant='outline'
-              onClick={() => onRespondToApproval(approval.id, false)}
-            >
-              Cancel
-            </Button>
-            <Button size='sm' type='button' onClick={() => onRespondToApproval(approval.id, true)}>
-              Confirm
-            </Button>
-          </div>
-        ) : null}
-      </div>
-    ) : null;
+  // todoWrite renders as a structured task list; its input IS its content.
+  if (part.type === 'tool-todoWrite') {
+    const todos =
+      part.input && typeof part.input === 'object' && 'todos' in part.input
+        ? ((part.input as { todos?: unknown[] }).todos ?? [])
+        : [];
+    return <TodoCard todos={todos as Parameters<typeof TodoCard>[0]['todos']} />;
+  }
 
-  const resultContent =
-    !hidesInlineResult &&
-    (part.state === 'output-available' ||
-      part.state === 'output-error' ||
-      part.state === 'output-denied') ? (
-      <ToolOutput errorText={part.errorText} output={part.output} />
-    ) : null;
-
-  const content =
-    summaryContent || approvalContent || resultContent ? (
-      <ToolContent>
-        {summaryContent}
-        {approvalContent}
-        {resultContent}
-      </ToolContent>
-    ) : null;
-
-  if (part.type === 'dynamic-tool') {
+  // task renders a live subagent-progress card.
+  if (part.type === 'tool-task') {
     return (
-      <Tool>
-        <ToolHeader state={part.state} toolName={part.toolName} type={part.type} />
-        {content}
-      </Tool>
+      <TaskCard
+        input={part.input as Parameters<typeof TaskCard>[0]['input']}
+        output={
+          part.state === 'output-available' || part.state === 'output-error'
+            ? (part.output as Parameters<typeof TaskCard>[0]['output'])
+            : undefined
+        }
+        state={part.state}
+      />
     );
   }
 
+  // askUserQuestion is a client-side tool: render choice chips + submit.
+  if (part.type === 'tool-askUserQuestion') {
+    return (
+      <AskUserQuestionCard
+        input={part.input as Parameters<typeof AskUserQuestionCard>[0]['input']}
+        onDecline={(toolCallId) => onDeclineQuestion?.(toolCallId)}
+        onSubmit={(toolCallId, answers) => onAnswerQuestion?.({ toolCallId, answers })}
+        output={part.state === 'output-available' ? part.output : undefined}
+        state={part.state}
+        toolCallId={part.toolCallId}
+      />
+    );
+  }
+
+  // Bridge the AI SDK approval callback (approvalId + boolean) to the
+  // ToolLayout approval API (onApprove(id) / onDeny(id, reason)).
+  const onApprove = onRespondToApproval ? (id: string) => onRespondToApproval(id, true) : undefined;
+  const onDeny = onRespondToApproval ? (id: string) => onRespondToApproval(id, false) : undefined;
+
+  const state = extractRenderState(part, isStreaming);
+  const Renderer = TOOL_RENDERERS[part.type];
+
+  if (Renderer) {
+    return <Renderer onApprove={onApprove} onDeny={onDeny} part={part} state={state} />;
+  }
+
+  const toolName =
+    part.type === 'dynamic-tool'
+      ? part.toolName
+      : part.type.startsWith('tool-')
+        ? part.type.slice('tool-'.length)
+        : part.type;
+
   return (
-    <Tool>
-      <ToolHeader state={part.state} type={part.type} />
-      {content}
-    </Tool>
+    <GenericToolRenderer
+      onApprove={onApprove}
+      onDeny={onDeny}
+      part={part}
+      state={state}
+      toolName={toolName}
+    />
   );
 }

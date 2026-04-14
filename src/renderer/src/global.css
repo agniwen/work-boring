@@ -196,9 +196,9 @@
   }
 
   /* Anywhere text is selectable, show the I-beam cursor. */
-  input:not([type='button']):not([type='submit']):not([type='reset']):not(
-      [type='checkbox']
-    ):not([type='radio']):not([type='range']):not([type='file']):not([type='color']),
+  input:not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not(
+      [type='radio']
+    ):not([type='range']):not([type='file']):not([type='color']),
   textarea,
   [contenteditable='true'],
   .chat-selectable,

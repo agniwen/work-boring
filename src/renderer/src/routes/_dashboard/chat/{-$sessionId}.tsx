@@ -4,7 +4,10 @@ import { orpc, orpcChatTransport, orpcClient } from '@renderer/lib/orpc';
 import { queryClient } from '@renderer/lib/query-client';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { lastAssistantMessageIsCompleteWithApprovalResponses } from 'ai';
+import {
+  lastAssistantMessageIsCompleteWithApprovalResponses,
+  lastAssistantMessageIsCompleteWithToolCalls,
+} from 'ai';
 import { startTransition, useEffect, useRef, useState } from 'react';
 
 import { DashboardHeaderStartContent } from '../-components/dashboard-header-portal';
@@ -153,7 +156,7 @@ function ChatWorkspaceLayout(props: {
   sidebarPending: boolean;
 }) {
   return (
-    <div className='flex h-[calc(100vh-46px)] overflow-hidden pb-2 px-2'>
+    <div className='flex h-[calc(100vh-46px)] overflow-hidden px-2 pb-2'>
       <DashboardHeaderStartContent>
         <div className='flex items-center gap-2'>
           <span className='text-sm font-medium text-foreground'>{props.activeSessionTitle}</span>
@@ -203,26 +206,36 @@ function ChatWorkspaceRuntime(props: {
   const { activeSessionId, onConsumePendingDraft, pendingDraftMessage } = props;
   const pendingDraftTriggeredRef = useRef(false);
   const wasStreamingRef = useRef(false);
-  const { addToolApprovalResponse, messages, regenerate, status, sendMessage, stop } =
-    useChat<WorkspaceAgentUIMessage>({
-      id: props.activeSessionId ?? 'new-chat',
-      messages: props.initialMessages,
-      // Once every approval in the last assistant step has a response, resume the server-side tool
-      // loop automatically without requiring another manual submit.
-      sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
-      transport: {
-        ...orpcChatTransport,
-        sendMessages: (options) => {
-          if (!props.activeSessionId) {
-            throw new Error('Cannot send a persisted chat message without a session id.');
-          }
-          return orpcChatTransport.sendMessages({
-            ...options,
-            sessionId: props.activeSessionId,
-          });
-        },
+  const {
+    addToolApprovalResponse,
+    addToolResult,
+    messages,
+    regenerate,
+    status,
+    sendMessage,
+    stop,
+  } = useChat<WorkspaceAgentUIMessage>({
+    id: props.activeSessionId ?? 'new-chat',
+    messages: props.initialMessages,
+    // Auto-resume the server-side step loop whenever the assistant's last
+    // step is fully answerable: either all approvals got a response, or all
+    // client-side tool calls (askUserQuestion) got a tool result.
+    sendAutomaticallyWhen: (options) =>
+      lastAssistantMessageIsCompleteWithApprovalResponses(options) ||
+      lastAssistantMessageIsCompleteWithToolCalls(options),
+    transport: {
+      ...orpcChatTransport,
+      sendMessages: (options) => {
+        if (!props.activeSessionId) {
+          throw new Error('Cannot send a persisted chat message without a session id.');
+        }
+        return orpcChatTransport.sendMessages({
+          ...options,
+          sessionId: props.activeSessionId,
+        });
       },
-    });
+    },
+  });
 
   const isStreaming = status === 'streaming' || status === 'submitted';
 
@@ -270,11 +283,35 @@ function ChatWorkspaceRuntime(props: {
     });
   };
 
+  // Submit the user's ask-user-question answer as a client-side tool result.
+  // sendAutomaticallyWhen picks this up once every client-side tool in the
+  // last assistant step has a result, and the server-side step loop resumes.
+  const handleAnswerQuestion = (payload: {
+    toolCallId: string;
+    answers: Record<string, string | string[]>;
+  }) => {
+    void addToolResult({
+      tool: 'askUserQuestion',
+      toolCallId: payload.toolCallId,
+      output: { answers: payload.answers },
+    });
+  };
+
+  const handleDeclineQuestion = (toolCallId: string) => {
+    void addToolResult({
+      tool: 'askUserQuestion',
+      toolCallId,
+      output: { declined: true },
+    });
+  };
+
   return (
     <>
       <ChatMessagesPane
         isStreaming={isStreaming}
         messages={messages}
+        onAnswerQuestion={handleAnswerQuestion}
+        onDeclineQuestion={handleDeclineQuestion}
         onRegenerate={(messageId) => {
           void regenerate({ messageId });
         }}
