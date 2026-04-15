@@ -59,11 +59,13 @@ export function TaskCard({
             <Icon className='h-3.5 w-3.5' />
           )}
         </span>
-        <span className='text-sm font-medium text-foreground'>task · {subagentType}</span>
-        <span className='min-w-0 flex-1 truncate font-mono text-[12px] text-muted-foreground'>
+        <span className='text-sm font-medium leading-none text-foreground'>
+          task · {subagentType}
+        </span>
+        <span className='min-w-0 flex-1 truncate font-mono text-[12px] leading-none text-muted-foreground'>
           {input?.task ?? ''}
         </span>
-        <span className='shrink-0 font-mono text-[11px] text-muted-foreground/60'>
+        <span className='shrink-0 font-mono text-[11px] leading-none text-muted-foreground/60'>
           {output?.stepCount ? `${output.stepCount} step${output.stepCount === 1 ? '' : 's'}` : ''}
           {output?.toolCallCount
             ? `${output?.stepCount ? ' · ' : ''}${output.toolCallCount} call${output.toolCallCount === 1 ? '' : 's'}`

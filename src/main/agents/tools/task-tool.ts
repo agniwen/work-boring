@@ -150,7 +150,10 @@ export function createTaskTool(deps: TaskToolDeps) {
         const response = await result.response;
         const summary = extractSubagentSummary(response.messages);
 
-        return {
+        // IMPORTANT: must be `yield`, not `return`. AI SDK's executeTool iterates
+        // the async generator with `for await...of`, which discards the return
+        // value — only the last yielded value becomes the tool's final output.
+        yield {
           subagentType,
           stepCount,
           toolCallCount,
@@ -163,7 +166,7 @@ export function createTaskTool(deps: TaskToolDeps) {
       } catch (error) {
         const aborted = abortSignal?.aborted ?? false;
         const message = error instanceof Error ? error.message : String(error);
-        return {
+        yield {
           subagentType,
           stepCount,
           toolCallCount,
