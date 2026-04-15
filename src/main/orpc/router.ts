@@ -34,16 +34,13 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
   const messageRepository = new ChatMessageRepository();
 
   const workspaceRoot = process.cwd();
-  const skillService = new SkillService({ workspaceRoot });
-
-  // Discover skills once at startup; the list is refreshed on each chat stream
-  // so newly added skills are picked up without restarting the app.
-  let cachedSkills = skillService.listInstalledSkills().then((r) => r.skills);
+  // No workspace picker yet — only scan user-level skill roots (~/.claude,
+  // ~/.agents, ~/.codex). When a workspace-open feature lands, pass its path
+  // as `workspaceRoot` here to enable project-scoped skill discovery.
+  const skillService = new SkillService();
 
   const workspaceAgentRuntime = createWorkspaceAgentRuntime({
     skillService,
-    // Initial empty skills – will be populated once discovery completes.
-    skills: [],
     workspaceRoot,
   });
 
@@ -90,11 +87,12 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
     },
     skills: {
       list: os.input(emptyInput).handler(async () => skillService.listInstalledSkills()),
-      // Allow renderer to trigger a re-scan of skills directories.
-      refresh: os.input(emptyInput).handler(async () => {
-        cachedSkills = skillService.listInstalledSkills().then((r) => r.skills);
-        return cachedSkills;
-      }),
+      // Allow renderer to trigger a re-scan of skills directories. Discovery
+      // is already unconditional on each call, so this is an alias for `list`
+      // that also returns just the effective (non-shadowed) skills.
+      refresh: os
+        .input(emptyInput)
+        .handler(async () => (await skillService.listInstalledSkills()).skills),
     },
     system: {
       info: os.input(emptyInput).handler(async () => deps.getSystemInfo()),

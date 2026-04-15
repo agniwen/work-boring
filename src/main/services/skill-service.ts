@@ -3,7 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 type SkillScope = 'project' | 'user';
-type SkillSourceKind = '.agents' | '.codex';
+type SkillSourceKind = '.claude' | '.agents' | '.codex';
 
 interface SkillDiscoveryRoot {
   baseDir: string;
@@ -50,7 +50,11 @@ export interface InstalledSkillsResult {
 }
 
 interface SkillServiceInput {
-  workspaceRoot: string;
+  // Optional: only set when the app has a concept of an "opened workspace".
+  // In the current desktop app there is no workspace picker, so this is
+  // typically left undefined and only user-level (~/.claude, ~/.agents, ...)
+  // skills are discovered.
+  workspaceRoot?: string;
 }
 
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/;
@@ -297,20 +301,46 @@ function toInstalledSkillRecord(
 export class SkillService {
   private readonly roots: SkillDiscoveryRoot[];
 
-  constructor(input: SkillServiceInput) {
+  constructor(input: SkillServiceInput = {}) {
     const homeDir = homedir();
-    this.roots = [
+    const roots: SkillDiscoveryRoot[] = [];
+
+    // Project-level roots are only registered when an explicit workspace is
+    // opened. The current desktop app has no workspace picker, so callers
+    // typically omit workspaceRoot and only the user-level roots below apply.
+    // Precedence is numerically ordered: higher wins. Project > user, and
+    // within the same scope we prefer .claude (Claude Code's default install
+    // path) > .agents > .codex to match where users are most likely to have
+    // installed skills.
+    if (input.workspaceRoot) {
+      roots.push(
+        {
+          baseDir: join(input.workspaceRoot, '.claude', 'skills'),
+          precedence: 6,
+          scope: 'project',
+          sourceKind: '.claude',
+        },
+        {
+          baseDir: join(input.workspaceRoot, '.agents', 'skills'),
+          precedence: 5,
+          scope: 'project',
+          sourceKind: '.agents',
+        },
+        {
+          baseDir: join(input.workspaceRoot, '.codex', 'skills'),
+          precedence: 4,
+          scope: 'project',
+          sourceKind: '.codex',
+        },
+      );
+    }
+
+    roots.push(
       {
-        baseDir: join(input.workspaceRoot, '.agents', 'skills'),
-        precedence: 4,
-        scope: 'project',
-        sourceKind: '.agents',
-      },
-      {
-        baseDir: join(input.workspaceRoot, '.codex', 'skills'),
+        baseDir: join(homeDir, '.claude', 'skills'),
         precedence: 3,
-        scope: 'project',
-        sourceKind: '.codex',
+        scope: 'user',
+        sourceKind: '.claude',
       },
       {
         baseDir: join(homeDir, '.agents', 'skills'),
@@ -324,7 +354,9 @@ export class SkillService {
         scope: 'user',
         sourceKind: '.codex',
       },
-    ];
+    );
+
+    this.roots = roots;
   }
 
   // Read the SKILL.md body (without frontmatter) for a given skill name.

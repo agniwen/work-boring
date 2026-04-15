@@ -1,7 +1,7 @@
 import { InferAgentUIMessage, stepCountIs, ToolLoopAgent, type LanguageModel } from 'ai';
 import { z } from 'zod';
 
-import type { InstalledSkillRecord, SkillService } from '../services/skill-service';
+import type { SkillService } from '../services/skill-service';
 import { buildSkillsPrompt, buildWorkspaceAgentInstructions } from './prompt';
 import { createMainLanguageModel, getMainLanguageModelName } from './provider';
 import { createSubagentRegistry, type SubagentRegistry } from './subagents';
@@ -29,7 +29,6 @@ type MainAgentCallOptions = z.infer<typeof callOptionsSchema> & {
 function createAgent(input: {
   mainModel: LanguageModel;
   skillService: SkillService;
-  skills: InstalledSkillRecord[];
   subagents: SubagentRegistry;
   workspaceRoot: string;
   instructions: string;
@@ -40,7 +39,6 @@ function createAgent(input: {
     tools: createWorkspaceTools({
       workspaceRoot: input.workspaceRoot,
       skillService: input.skillService,
-      skills: input.skills,
       subagents: input.subagents,
     }),
     // Single-step loop: each .stream() call advances by one model turn so the
@@ -83,7 +81,6 @@ export interface WorkspaceAgentRuntime {
 
 export function createWorkspaceAgentRuntime(input: {
   skillService: SkillService;
-  skills: InstalledSkillRecord[];
   workspaceRoot?: string;
 }): WorkspaceAgentRuntime {
   const workspaceRoot = input.workspaceRoot ?? process.cwd();
@@ -98,7 +95,6 @@ export function createWorkspaceAgentRuntime(input: {
     agent: createAgent({
       mainModel,
       skillService: input.skillService,
-      skills: input.skills,
       subagents,
       workspaceRoot,
       instructions,
