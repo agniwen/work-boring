@@ -1,3 +1,4 @@
+import { TerminalToggleButton } from '@renderer/components/features/terminal-toggle';
 import { SidebarTrigger, useSidebar } from '@renderer/components/ui/sidebar';
 import { cn } from '@renderer/lib/utils';
 
@@ -27,7 +28,10 @@ export function DashboardHeader() {
         >
           <div className='flex w-full items-center justify-between'>
             <DashboardHeaderStartTarget />
-            <DashboardHeaderEndTarget />
+            <div className='flex items-center gap-1'>
+              <DashboardHeaderEndTarget />
+              <TerminalToggleButton />
+            </div>
           </div>
         </div>
       </div>

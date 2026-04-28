@@ -1,4 +1,5 @@
 import { sidebarOpenAtom, sidebarWidthAtom } from '@renderer/atom/app';
+import { TerminalPanel } from '@renderer/components/features/terminal-panel';
 import { SidebarInset, SidebarProvider } from '@renderer/components/ui/sidebar';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useAtom } from 'jotai';
@@ -32,10 +33,13 @@ function DashboardLayout() {
             <AppSidebar />
             <SidebarInset>
               <DashboardHeader />
-              <div className='h-full pt-11.5'>
-                <div className='h-full overflow-auto'>
+              {/* min-h-0 lets the terminal panel below us claim height
+                  without the content area refusing to shrink. */}
+              <div className='flex min-h-0 flex-1 flex-col pt-11.5'>
+                <div className='min-h-0 flex-1 overflow-auto'>
                   <Outlet />
                 </div>
+                <TerminalPanel />
               </div>
             </SidebarInset>
           </SidebarProvider>

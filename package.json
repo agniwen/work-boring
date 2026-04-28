@@ -28,9 +28,12 @@
     "@fontsource-variable/geist": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@orpc/server": "^1.13.13",
+    "@wterm/dom": "^0.2.0",
+    "@wterm/react": "^0.2.0",
     "drizzle-orm": "1.0.0-beta.19",
     "electron-updater": "^6.8.3",
     "execa": "^9.6.1",
+    "node-pty": "^1.1.0",
     "simple-git": "^3.33.0"
   },
   "devDependencies": {
@@ -101,7 +104,11 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "electron",
-      "esbuild"
-    ]
+      "esbuild",
+      "node-pty"
+    ],
+    "overrides": {
+      "@wterm/core": "0.2.0"
+    }
   }
 }

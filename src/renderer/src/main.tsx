@@ -1,3 +1,6 @@
+// wterm CSS must come BEFORE global.css so our `.wterm` overrides
+// (theme tokens, padding, border-radius) win the cascade.
+import '@wterm/react/css';
 import './global.css';
 import { queryClient } from '@renderer/lib/query-client';
 import { router } from '@renderer/router';

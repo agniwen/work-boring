@@ -68,7 +68,7 @@ function Dashboard() {
   const summary = summaryQuery.data;
 
   return (
-    <div className='h-[calc(100vh-3.25rem)] space-y-5 overflow-hidden'>
+    <div className='h-full space-y-5 overflow-hidden'>
       <DashboardHeaderStartContent>
         <div>
           <div className='text-sm font-semibold text-foreground'>Dashboard</div>

@@ -29,7 +29,7 @@ function SkillsManagement() {
   });
 
   return (
-    <div className='h-[calc(100vh-3.25rem)] space-y-5 overflow-hidden'>
+    <div className='h-full space-y-5 overflow-hidden'>
       <DashboardHeaderStartContent>
         <div className='flex items-center gap-2'>
           <span className='text-sm font-medium text-foreground'>Skills</span>

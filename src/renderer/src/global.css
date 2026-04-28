@@ -287,4 +287,55 @@
     -webkit-app-region: no-drag;
     app-region: no-drag;
   }
+
+}
+
+/* wterm theme — kept OUT of @layer so it wins the cascade against the
+   unlayered styles shipped by `@wterm/react/css`. wterm reads its colors
+   from CSS custom properties on .wterm; we bind them to app theme tokens. */
+.wterm {
+  --term-bg: var(--background);
+  --term-fg: var(--foreground);
+  --term-cursor: var(--foreground);
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+:root .wterm {
+  --term-color-0: oklch(0.3 0.01 250);
+  --term-color-1: oklch(0.55 0.2 27);
+  --term-color-2: oklch(0.6 0.16 145);
+  --term-color-3: oklch(0.7 0.15 80);
+  --term-color-4: oklch(0.55 0.18 250);
+  --term-color-5: oklch(0.55 0.2 320);
+  --term-color-6: oklch(0.6 0.13 200);
+  --term-color-7: oklch(0.45 0.01 250);
+  --term-color-8: oklch(0.55 0.01 250);
+  --term-color-9: oklch(0.62 0.22 27);
+  --term-color-10: oklch(0.68 0.18 145);
+  --term-color-11: oklch(0.78 0.16 80);
+  --term-color-12: oklch(0.62 0.2 250);
+  --term-color-13: oklch(0.62 0.22 320);
+  --term-color-14: oklch(0.68 0.14 200);
+  --term-color-15: oklch(0.25 0.01 250);
+}
+
+.dark .wterm {
+  --term-color-0: oklch(0.25 0.01 250);
+  --term-color-1: oklch(0.65 0.22 27);
+  --term-color-2: oklch(0.72 0.18 145);
+  --term-color-3: oklch(0.82 0.17 85);
+  --term-color-4: oklch(0.7 0.18 250);
+  --term-color-5: oklch(0.7 0.2 320);
+  --term-color-6: oklch(0.75 0.14 200);
+  --term-color-7: oklch(0.92 0.005 250);
+  --term-color-8: oklch(0.55 0.01 250);
+  --term-color-9: oklch(0.72 0.23 27);
+  --term-color-10: oklch(0.8 0.18 145);
+  --term-color-11: oklch(0.88 0.16 85);
+  --term-color-12: oklch(0.78 0.18 250);
+  --term-color-13: oklch(0.78 0.2 320);
+  --term-color-14: oklch(0.82 0.14 200);
+  --term-color-15: oklch(0.985 0 0);
 }

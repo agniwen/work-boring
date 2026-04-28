@@ -4,6 +4,7 @@ import { createWorkspaceAgentRuntime, type WorkspaceAgentUIMessage } from '../ag
 import { ChatMessageRepository } from '../db/repositories/chat-message-repo';
 import { ChatSessionRepository } from '../db/repositories/chat-session-repo';
 import { ChatService } from '../services/chat-service';
+import { PtyService } from '../services/pty-service';
 import { SkillService } from '../services/skill-service';
 
 const emptyInput = type<void>();
@@ -11,6 +12,10 @@ const createChatSessionInput = type<{ title?: string } | void>();
 const chatStreamInput = type<{ sessionId: string; messages: WorkspaceAgentUIMessage[] }>();
 const chatSessionByIdInput = type<{ sessionId: string }>();
 const renameChatSessionInput = type<{ sessionId: string; title: string }>();
+const ptyCreateInput = type<{ id: string; cols: number; rows: number; cwd?: string }>();
+const ptyWriteInput = type<{ id: string; data: string }>();
+const ptyResizeInput = type<{ id: string; cols: number; rows: number }>();
+const ptyByIdInput = type<{ id: string }>();
 
 export interface SystemInfo {
   appName: string;
@@ -43,6 +48,8 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
     skillService,
     workspaceRoot,
   });
+
+  const ptyService = new PtyService();
 
   const chatService = new ChatService({
     agent: workspaceAgentRuntime.agent,
@@ -96,6 +103,24 @@ export function createAppRouter(deps: CreateAppRouterDeps) {
     },
     system: {
       info: os.input(emptyInput).handler(async () => deps.getSystemInfo()),
+    },
+    terminal: {
+      // PTY lifecycle. The renderer creates a session per terminal tab and
+      // calls dispose when the tab is closed. The output stream is a separate
+      // long-lived call (one per tab) so backpressure stays scoped per tab.
+      create: os.input(ptyCreateInput).handler(async ({ input }) => ptyService.create(input)),
+      write: os
+        .input(ptyWriteInput)
+        .handler(async ({ input }) => ptyService.write(input.id, input.data)),
+      resize: os
+        .input(ptyResizeInput)
+        .handler(async ({ input }) => ptyService.resize(input.id, input.cols, input.rows)),
+      dispose: os.input(ptyByIdInput).handler(async ({ input }) => ptyService.dispose(input.id)),
+      output: os.input(ptyByIdInput).handler(async ({ input, signal }) => {
+        // Returning the async generator directly — oRPC treats async iterables
+        // as event iterators. `signal` aborts the generator on disconnect.
+        return ptyService.subscribe(input.id, signal);
+      }),
     },
   };
 }

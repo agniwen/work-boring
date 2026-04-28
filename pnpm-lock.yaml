@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@wterm/core': 0.2.0
+
 importers:
 
   .:
@@ -23,6 +26,12 @@ importers:
       '@orpc/server':
         specifier: ^1.13.13
         version: 1.13.13(@opentelemetry/api@1.9.0)
+      '@wterm/dom':
+        specifier: ^0.2.0
+        version: 0.2.0
+      '@wterm/react':
+        specifier: ^0.2.0
+        version: 0.2.0(@wterm/dom@0.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       drizzle-orm:
         specifier: 1.0.0-beta.19
         version: 1.0.0-beta.19(@opentelemetry/api@1.9.0)(@types/mssql@9.1.10(@azure/core-client@1.10.1))(mssql@11.0.1(@azure/core-client@1.10.1))(zod@3.25.76)
@@ -32,6 +41,9 @@ importers:
       execa:
         specifier: ^9.6.1
         version: 9.6.1
+      node-pty:
+        specifier: ^1.1.0
+        version: 1.1.0
       simple-git:
         specifier: ^3.33.0
         version: 3.33.0
@@ -2783,6 +2795,19 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0
 
+  '@wterm/core@0.2.0':
+    resolution: {integrity: sha512-nqtrGz/tqTkPrvB/Ag/43KuUZOcAjZaj+UM+caf1w1IYLfxQPexpZs3JOrYav4sDoYNFdJJWtybtRflHGeMW2Q==}
+
+  '@wterm/dom@0.2.0':
+    resolution: {integrity: sha512-AntxyafwaxVrD/+OBfjRW7DarSV1JFKYjpnQUMDhRfWbzZdfAqqo66Zm+FhFKPY4veLuB3kF9C/4Rss2Vd9OYw==}
+
+  '@wterm/react@0.2.0':
+    resolution: {integrity: sha512-JX8ewIhZeOBX5KLJzZjE3/k41PTSIAgeh89LRd+hqpC2CyKM+dkjO7DfI0Yw9WG0ViE8jF6CQRCa8Io5sRmdTg==}
+    peerDependencies:
+      '@wterm/dom': workspace:*
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+
   '@xmldom/xmldom@0.8.11':
     resolution: {integrity: sha512-cQzWCtO6C8TQiYl1ruKNn2U6Ao4o4WBBcbL61yJl84x+j5sOWWFU9X7DpND8XZG3daDppSsigMdfAIl2upQBRw==}
     engines: {node: '>=10.0.0'}
@@ -5040,6 +5065,9 @@ packages:
   node-addon-api@1.7.2:
     resolution: {integrity: sha512-ibPK3iA+vaY1eEjESkQkM0BbCqFOaZMiXRTtdB0u7b4djtY6JnsjvPdUHVMg6xQt3B8fpTTWHI9A+ADjM9frzg==}
 
+  node-addon-api@7.1.1:
+    resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
+
   node-api-version@0.2.1:
     resolution: {integrity: sha512-2xP/IGGMmmSQpI1+O/k72jF/ykvZ89JeuKX3TLJAYPDVLUalrshrLHkeVcCCZqG/eEa635cr8IBYzgnDvM2O8Q==}
 
@@ -5056,6 +5084,9 @@ packages:
     resolution: {integrity: sha512-ra7Kvlhxn5V9Slyus0ygMa2h+UqExPqUIkfk7Pc8QTLT956JLSy51uWFwHtIYy0vI8cB4BDhc/S03+880My/LQ==}
     engines: {node: ^18.17.0 || >=20.5.0}
     hasBin: true
+
+  node-pty@1.1.0:
+    resolution: {integrity: sha512-20JqtutY6JPXTUnL0ij1uad7Qe1baT46lyolh2sSENDd4sTzKZ4nmAFkeAARDKwmlLjPx6XKRlwRUxwjOy+lUg==}
 
   node-releases@2.0.36:
     resolution: {integrity: sha512-TdC8FSgHz8Mwtw9g5L4gR/Sh9XhSP/0DEkQxfEFXOpiul5IiHgHan2VhYYb6agDSfp4KuvltmGApc8HMgUrIkA==}
@@ -8930,6 +8961,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@wterm/core@0.2.0': {}
+
+  '@wterm/dom@0.2.0':
+    dependencies:
+      '@wterm/core': 0.2.0
+
+  '@wterm/react@0.2.0(@wterm/dom@0.2.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+    dependencies:
+      '@wterm/dom': 0.2.0
+      react: 19.2.4
+      react-dom: 19.2.4(react@19.2.4)
+
   '@xmldom/xmldom@0.8.11': {}
 
   '@xyflow/react@12.10.2(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
@@ -11533,6 +11576,8 @@ snapshots:
   node-addon-api@1.7.2:
     optional: true
 
+  node-addon-api@7.1.1: {}
+
   node-api-version@0.2.1:
     dependencies:
       semver: 7.7.4
@@ -11559,6 +11604,10 @@ snapshots:
       which: 5.0.0
     transitivePeerDependencies:
       - supports-color
+
+  node-pty@1.1.0:
+    dependencies:
+      node-addon-api: 7.1.1
 
   node-releases@2.0.36: {}
 
