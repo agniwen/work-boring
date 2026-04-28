@@ -35,7 +35,7 @@ function DashboardLayout() {
               <DashboardHeader />
               {/* min-h-0 lets the terminal panel below us claim height
                   without the content area refusing to shrink. */}
-              <div className='flex min-h-0 flex-1 flex-col pt-11.5'>
+              <div className='flex max-h-[calc(100vh)] min-h-0 flex-1 flex-col pt-11.5'>
                 <div className='min-h-0 flex-1 overflow-auto'>
                   <Outlet />
                 </div>

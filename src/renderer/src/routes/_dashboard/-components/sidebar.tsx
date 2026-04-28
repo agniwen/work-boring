@@ -1,5 +1,5 @@
 import { ChatDotsIcon, HammerIcon, CalendarCheckIcon } from '@phosphor-icons/react';
-import { ThemeSwitcher } from '@renderer/components/features/theme-swicher';
+import { SettingsMenu } from '@renderer/components/features/settings-menu';
 import {
   Sidebar,
   SidebarContent,
@@ -78,8 +78,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className='px-3 py-2'>
-        <ThemeSwitcher />
+      <SidebarFooter className='px-2 py-2'>
+        <SettingsMenu />
       </SidebarFooter>
 
       <SidebarResizeHandle />

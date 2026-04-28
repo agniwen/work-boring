@@ -215,8 +215,15 @@ function TerminalTabPill({
 function TerminalTabContent({ tabId, active }: { tabId: string; active: boolean }) {
   const open = useAtomValue(terminalOpenAtom);
   const { ref, write, focus } = useTerminal();
+  // Fallback dims for wterm's very first paint only. The PTY is *not* created
+  // with these — it waits until wterm reports its actual measured grid via
+  // the first onResize, so the shell prompt lands on a stable, full-size
+  // grid from line 1. Without this, the shell would print into an 80×24
+  // buffer that later grows, leaving the prompt stranded mid-viewport.
   const initialSize = useMemo(() => ({ cols: 80, rows: 24 }), []);
   const readyRef = useRef(false);
+  const startedRef = useRef(false);
+  const controllerRef = useRef<AbortController | null>(null);
 
   // Send keystrokes to the PTY. We don't wait on the promise — fire & forget
   // is fine for high-frequency input.
@@ -252,8 +259,74 @@ function TerminalTabContent({ tabId, active }: { tabId: string; active: boolean 
   const resizeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingResizeRef = useRef<{ cols: number; rows: number } | null>(null);
 
+  // Boots the PTY at the wterm-measured grid size and pumps its output stream.
+  // Called once, from the first onResize that carries non-zero dims, so the
+  // shell's first prompt is rendered into a final-sized grid (no mid-viewport
+  // whitespace from a 80×24-then-grow handoff).
+  const startSession = useCallback(
+    async (cols: number, rows: number) => {
+      try {
+        await orpcClient.terminal.create({ id: tabId, cols, rows });
+      } catch (err) {
+        console.error('terminal.create failed', err);
+        return;
+      }
+
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      let firstFrame = true;
+      try {
+        const iter = await orpcClient.terminal.output(
+          { id: tabId },
+          { signal: controller.signal },
+        );
+        for await (const ev of iter) {
+          if (controller.signal.aborted) break;
+          if (ev.type === 'data') {
+            write(ev.payload);
+            // Once the shell's first paint lands we know wterm has measured
+            // its real row height. Re-align the padding (so wterm's
+            // isAtBottom math becomes exact) and force a scrollToBottom.
+            // Without this, an early-life rowHeight mismatch can leave
+            // wterm's auto-scroll latched as "user scrolled up", stranding
+            // the prompt mid-viewport until the next keystroke.
+            if (firstFrame) {
+              firstFrame = false;
+              requestAnimationFrame(() => {
+                alignHeightToRow();
+                const wt = ref.current?.instance as
+                  | undefined
+                  | { scrollToBottom?: () => void };
+                wt?.scrollToBottom?.();
+              });
+            }
+          } else if (ev.type === 'exit') {
+            write(`\r\n[process exited with code ${ev.payload.exitCode}]\r\n`);
+            break;
+          }
+        }
+      } catch (err) {
+        if (!controller.signal.aborted) console.error('terminal.output failed', err);
+      }
+    },
+    [tabId, write, alignHeightToRow, ref],
+  );
+
   const onResize = useCallback(
     (cols: number, rows: number) => {
+      // Skip degenerate measurements (can happen during mount/animation).
+      if (!cols || !rows) return;
+
+      // First valid measurement: this is our cue to create the PTY at the
+      // real grid size. We deliberately don't also send a separate resize
+      // IPC here — `create` already carries the correct dims.
+      if (!startedRef.current) {
+        startedRef.current = true;
+        void startSession(cols, rows);
+        alignHeightToRow();
+        return;
+      }
+
       pendingResizeRef.current = { cols, rows };
       if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
       resizeTimerRef.current = setTimeout(() => {
@@ -267,62 +340,24 @@ function TerminalTabContent({ tabId, active }: { tabId: string; active: boolean 
         alignHeightToRow();
       }, 120);
     },
-    [tabId, alignHeightToRow],
+    [tabId, alignHeightToRow, startSession],
   );
 
-  // Make sure pending resize doesn't fire after unmount.
+  // Tear down on unmount: cancel any pending debounced resize and abort the
+  // output subscription so the main-side generator exits cleanly.
+  // Intentionally do NOT dispose the PTY here. React StrictMode in dev
+  // double-invokes effects (mount → unmount → remount), and disposing on
+  // unmount would kill the shell on every dev re-render. Disposal happens
+  // explicitly via closeTab when the user hits the tab × button. The
+  // service's `create` is idempotent on existing ids so a remount just
+  // re-attaches the subscription to the same PTY.
   useEffect(() => {
     return () => {
       if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
+      controllerRef.current?.abort();
+      controllerRef.current = null;
     };
   }, []);
-
-  // Create the PTY and subscribe to its output stream once per tab. The
-  // subscription is torn down via AbortController on unmount — that triggers
-  // the main-side generator to exit cleanly.
-  useEffect(() => {
-    const controller = new AbortController();
-    let cancelled = false;
-
-    (async () => {
-      try {
-        await orpcClient.terminal.create({
-          id: tabId,
-          cols: initialSize.cols,
-          rows: initialSize.rows,
-        });
-      } catch (err) {
-        console.error('terminal.create failed', err);
-        return;
-      }
-
-      try {
-        const iter = await orpcClient.terminal.output({ id: tabId }, { signal: controller.signal });
-        for await (const ev of iter) {
-          if (cancelled) break;
-          if (ev.type === 'data') {
-            write(ev.payload);
-          } else if (ev.type === 'exit') {
-            write(`\r\n[process exited with code ${ev.payload.exitCode}]\r\n`);
-            break;
-          }
-        }
-      } catch (err) {
-        if (!controller.signal.aborted) console.error('terminal.output failed', err);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-      // Intentionally do NOT dispose the PTY here. React StrictMode in dev
-      // double-invokes effects (mount → unmount → remount), and disposing on
-      // unmount would kill the shell on every dev re-render. Disposal happens
-      // explicitly via closeTab when the user hits the tab × button. The
-      // service's `create` is idempotent on existing ids so a remount just
-      // re-attaches the subscription to the same PTY.
-    };
-  }, [tabId, initialSize.cols, initialSize.rows, write]);
 
   // Refocus the active tab when shown (panel-open or tab-switch). wterm's
   // input textarea only exists after wasm init resolves, so we also refocus
