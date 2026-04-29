@@ -1,6 +1,6 @@
-# Boring Work
+# Codez
 
-`Boring Work` is a local-first Electron desktop AI agent application.
+`Codez` is a local-first Electron desktop AI agent application.
 
 It is built with:
 

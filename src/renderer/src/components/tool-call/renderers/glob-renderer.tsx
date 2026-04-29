@@ -9,7 +9,7 @@ function truncatePath(path: string) {
   return `…/${segments.slice(-2).join('/')}`;
 }
 
-// Glob renderer. work-boring's glob output uses `matches: [{path, size, modifiedAt}]`.
+// Glob renderer. codez's glob output uses `matches: [{path, size, modifiedAt}]`.
 export function GlobRenderer({ part, state, onApprove, onDeny }: ToolRendererProps) {
   const input = (part.input ?? {}) as { pattern?: string; path?: string };
   const pattern = input.pattern ?? '...';

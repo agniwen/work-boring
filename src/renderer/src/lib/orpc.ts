@@ -39,12 +39,12 @@ function createORPCBindings() {
 }
 
 const globalORPC = globalThis as typeof globalThis & {
-  __boringWorkORPC?: ReturnType<typeof createORPCBindings>;
+  __codezORPC?: ReturnType<typeof createORPCBindings>;
 };
 
-const bindings = globalORPC.__boringWorkORPC ?? createORPCBindings();
+const bindings = globalORPC.__codezORPC ?? createORPCBindings();
 
-globalORPC.__boringWorkORPC = bindings;
+globalORPC.__codezORPC = bindings;
 
 export const orpcClient = bindings.client;
 export const orpc = bindings.orpc;

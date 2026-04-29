@@ -17,7 +17,7 @@ function getUniqueFiles(matches: GrepMatch[]) {
   return [...seen];
 }
 
-// Grep renderer. work-boring's grep output uses
+// Grep renderer. codez's grep output uses
 // {matches: [{path, lineNumber, content}]} — note `path`/`lineNumber`, not the
 // open-agents `file`/`line` field names.
 export function GrepRenderer({ part, state, onApprove, onDeny }: ToolRendererProps) {

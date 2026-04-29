@@ -1,5 +1,5 @@
-appId: com.boringwork.app
-productName: Boring Work
+appId: com.codez.app
+productName: Codez
 directories:
   buildResources: build
 files:
@@ -12,7 +12,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: boring-work
+  executableName: codez
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

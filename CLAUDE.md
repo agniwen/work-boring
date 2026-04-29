@@ -4,7 +4,7 @@ This file provides project-specific context for coding agents working in this re
 
 ## Project Summary
 
-This repository is **Boring Work**, an Electron desktop AI agent application built with:
+This repository is **Codez**, an Electron desktop AI agent application built with:
 
 - Electron 39
 - React 19

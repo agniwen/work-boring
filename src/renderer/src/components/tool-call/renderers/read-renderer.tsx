@@ -4,7 +4,7 @@ import { FileNamePill } from '../file-name-pill';
 import { ToolLayout } from '../tool-layout';
 import type { ToolRendererProps } from './types';
 
-// Read renderer. work-boring's read output is
+// Read renderer. codez's read output is
 // {path, startLine, endLine, totalLines, sizeBytes, truncated, content}.
 // The server already formats content as " N | line" — we strip that prefix
 // for the expanded view so copy/paste works cleanly.

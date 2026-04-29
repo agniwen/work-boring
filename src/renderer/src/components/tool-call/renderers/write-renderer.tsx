@@ -4,7 +4,7 @@ import { FileNamePill } from '../file-name-pill';
 import { ToolLayout } from '../tool-layout';
 import type { ToolRendererProps } from './types';
 
-// Write renderer. work-boring input: {path, content, mode?}. We show the
+// Write renderer. codez input: {path, content, mode?}. We show the
 // incoming content preview while the call is awaiting approval or done, and
 // a +lines meta tag for quick scanning.
 export function WriteRenderer({ part, state, onApprove, onDeny }: ToolRendererProps) {

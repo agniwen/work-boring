@@ -8,6 +8,7 @@ import { atom, useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { motion } from 'motion/react';
 import { nanoid } from 'nanoid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 
 const MIN_HEIGHT = 160;
 const MIN_WIDTH = 360;
@@ -58,6 +59,18 @@ export function TerminalPanel() {
   const [height, setHeight] = useAtom(terminalHeightAtom);
   const { tabs, activeId, setActiveId, newTab, closeTab } = useTerminalTabs();
 
+  // Cmd/Ctrl+J toggles the panel. enableOnFormTags + enableOnContentEditable
+  // so it still fires when focus is inside the chat composer or the wterm
+  // textarea — that's the most common moment to want it.
+  useHotkeys(
+    'meta+j, ctrl+j',
+    (e) => {
+      e.preventDefault();
+      setOpen((v) => !v);
+    },
+    { enableOnFormTags: true, enableOnContentEditable: true },
+  );
+
   // Lazily create the first tab when the panel is first opened.
   useEffect(() => {
     if (open && tabs.length === 0) newTab();
@@ -93,6 +106,7 @@ export function TerminalPanel() {
     setDragging(false);
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
   }, []);
+  console.log({ height });
 
   return (
     // Outer is the animating clipper: it grows in flex-flow so the content
@@ -100,6 +114,7 @@ export function TerminalPanel() {
     // anchored at the bottom with a stable height — wterm sees a real size
     // from the moment it mounts, so its ResizeObserver wires up correctly.
     <motion.div
+      // key={open ? 'open' : 'closed'} // reset animation on open/close toggle
       initial={false}
       animate={{ height: open ? height : 0 }}
       transition={
@@ -162,7 +177,8 @@ export function TerminalPanel() {
             preserved when switching. Visibility toggled via display. */}
         <div className='relative min-h-0 flex-1'>
           {tabs.map((tab) => (
-            <TerminalTabContent key={tab.id} tabId={tab.id} active={tab.id === activeId} />
+            // oxlint-disable-next-line typescript/no-unnecessary-template-expression
+            <TerminalTabContent key={`${tab.id}`} tabId={tab.id} active={tab.id === activeId} />
           ))}
         </div>
       </div>
@@ -193,7 +209,7 @@ function TerminalTabPill({
           : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
       )}
     >
-      <span className='max-w-[120px] truncate'>{tab.title}</span>
+      <span className='max-w-30 truncate'>{tab.title}</span>
       <button
         type='button'
         aria-label={`Close ${tab.title}`}
@@ -201,7 +217,7 @@ function TerminalTabPill({
           e.stopPropagation();
           onClose();
         }}
-        className='inline-flex size-3.5 items-center justify-center rounded text-muted-foreground opacity-0 group-hover/tab:opacity-100 hover:bg-foreground/10 aria-[selected=true]:opacity-100'
+        className='inline-flex size-3.5 items-center justify-center rounded text-muted-foreground opacity-0 group-hover/tab:opacity-100 hover:bg-foreground/10 aria-selected:opacity-100'
       >
         <XIcon className='size-3' />
       </button>
@@ -276,30 +292,24 @@ function TerminalTabContent({ tabId, active }: { tabId: string; active: boolean 
       controllerRef.current = controller;
       let firstFrame = true;
       try {
-        const iter = await orpcClient.terminal.output(
-          { id: tabId },
-          { signal: controller.signal },
-        );
+        const iter = await orpcClient.terminal.output({ id: tabId }, { signal: controller.signal });
         for await (const ev of iter) {
           if (controller.signal.aborted) break;
           if (ev.type === 'data') {
             write(ev.payload);
-            // Once the shell's first paint lands we know wterm has measured
-            // its real row height. Re-align the padding (so wterm's
-            // isAtBottom math becomes exact) and force a scrollToBottom.
-            // Without this, an early-life rowHeight mismatch can leave
-            // wterm's auto-scroll latched as "user scrolled up", stranding
-            // the prompt mid-viewport until the next keystroke.
-            if (firstFrame) {
-              firstFrame = false;
-              requestAnimationFrame(() => {
-                alignHeightToRow();
-                const wt = ref.current?.instance as
-                  | undefined
-                  | { scrollToBottom?: () => void };
-                wt?.scrollToBottom?.();
-              });
-            }
+            // Force scroll-to-bottom on every output frame so a newly created
+            // tab (and any subsequent output) always tracks the latest line.
+            // The first frame additionally re-aligns padding now that wterm
+            // has measured its real row height — without this, an early-life
+            // rowHeight mismatch can latch wterm's auto-scroll as "user
+            // scrolled up", stranding the prompt mid-viewport.
+            const wasFirst = firstFrame;
+            firstFrame = false;
+            requestAnimationFrame(() => {
+              if (wasFirst) alignHeightToRow();
+              const wt = ref.current?.instance as undefined | { scrollToBottom?: () => void };
+              wt?.scrollToBottom?.();
+            });
           } else if (ev.type === 'exit') {
             write(`\r\n[process exited with code ${ev.payload.exitCode}]\r\n`);
             break;
@@ -385,7 +395,7 @@ function TerminalTabContent({ tabId, active }: { tabId: string; active: boolean 
       }}
       // Click anywhere in the wrapper to refocus the hidden textarea.
       onMouseDown={() => focus()}
-      className='absolute inset-0 overflow-hidden p-2'
+      className='absolute inset-0 max-h-full overflow-scroll p-2'
     >
       <Terminal
         ref={ref}

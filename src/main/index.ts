@@ -57,8 +57,8 @@ app.commandLine.appendSwitch('disable-gpu-vsync');
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set app user model id for windows
-  app.setName('Boring Work');
-  electronApp.setAppUserModelId('com.boringwork.app');
+  app.setName('Codez');
+  electronApp.setAppUserModelId('com.codez.app');
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

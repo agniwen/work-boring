@@ -33,7 +33,7 @@ export type GenericToolPart = {
 
 // Derive the unified render state from a tool part + surrounding stream state.
 // Mirrors open-agents' extractRenderState but drops the activeApprovalId branch
-// (work-boring does not track a single focused approval yet).
+// (codez does not track a single focused approval yet).
 export function extractRenderState(part: GenericToolPart, isStreaming: boolean): ToolRenderState {
   const isRunningState = part.state === 'input-streaming' || part.state === 'input-available';
   const approval = part.approval;

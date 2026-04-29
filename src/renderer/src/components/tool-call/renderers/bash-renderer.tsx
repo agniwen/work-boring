@@ -3,7 +3,7 @@ import { Terminal } from 'lucide-react';
 import { ToolLayout } from '../tool-layout';
 import type { ToolRendererProps } from './types';
 
-// Ported bash renderer. work-boring's bash tool returns
+// Ported bash renderer. codez's bash tool returns
 // {command, cwd, exitCode, failed, timedOut, stdout, stderr, ...} — no
 // `success` field, so we derive error state from `failed` or a non-zero
 // exitCode and surface `exit N` in the error meta slot.

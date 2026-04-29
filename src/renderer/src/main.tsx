@@ -1,5 +1,6 @@
 // wterm CSS must come BEFORE global.css so our `.wterm` overrides
 // (theme tokens, padding, border-radius) win the cascade.
+// @ts-expect-error ignore
 import '@wterm/react/css';
 import './global.css';
 import { queryClient } from '@renderer/lib/query-client';
